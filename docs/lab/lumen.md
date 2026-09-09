@@ -34,6 +34,15 @@ free. It did not. The saving is on the side we control badly — script, on the 
 growing with element count. The remaining cost is paint, which the compositor handles and
 which we have not measured here.
 
+## Promoted to ⚡ Experimental
+
+On 2026-09-09, with one change that mattered: the prototype lit a grid of identical empty
+tiles, which is a demo. The component lights whatever children it is given, imposes no
+layout of its own, and adds no wrapper — because a surface that can only light its own
+tiles is not a component.
+
+Paint remains unmeasured and is documented as a limitation rather than resolved.
+
 ## Still open
 
 - Paint cost is unmeasured. That is the real ceiling and no number is claimed.
