@@ -4,6 +4,9 @@ import { DisplacementFieldLab } from './displacement-field/lab';
 import { PourLab } from './pour/lab';
 import { HazeLab } from './haze/lab';
 import { ThreadsLab } from './threads/lab';
+import { SedimentLab } from './sediment/lab';
+import { LensLab } from './lens/lab';
+import { WakeLab } from './wake/lab';
 import { WeightLab } from './weight/lab';
 import { LumenLab } from './lumen/lab';
 import { FractureLab } from './fracture/lab';
@@ -17,6 +20,27 @@ interface Experiment {
 }
 
 const EXPERIMENTS: Experiment[] = [
+  {
+    id: 'wake',
+    title: 'Wake',
+    summary:
+      'Fast movement leaves a trail of where it has been, which fades. Move slowly and nothing trails — a wake is a function of speed, not of movement.',
+    render: () => <WakeLab />,
+  },
+  {
+    id: 'lens',
+    title: 'Lens',
+    summary:
+      'A disc you move over dense content that magnifies the real DOM beneath it, not a picture of it. The text under it is text, rendered at that size.',
+    render: () => <LensLab />,
+  },
+  {
+    id: 'sediment',
+    title: 'Sediment',
+    summary:
+      'A list that settles when it changes: an arriving item falls into place and the ones below absorb the shift, one after another, instead of the whole list sliding.',
+    render: () => <SedimentLab />,
+  },
   {
     id: 'threads',
     title: 'Threads',
