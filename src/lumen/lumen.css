@@ -1,0 +1,62 @@
+/*
+ * Lumen — a surface lit by a single moving light.
+ *
+ * Everything a face needs is derived from two properties on the surface. Customisation is
+ * through custom properties rather than props, so a face can be any element you like.
+ */
+
+.neva-lumen {
+  --neva-light-x: 50%;
+  --neva-light-y: 0px;
+  --neva-light-away: 1;
+
+  /* Tunable, and documented as the component's public surface. */
+  --neva-lumen-highlight: rgba(255, 250, 235, 0.5);
+  --neva-lumen-shadow: rgba(0, 0, 0, 0.65);
+  --neva-lumen-shadow-length: 0.05;
+  --neva-lumen-highlight-shift: 0.14;
+  --neva-lumen-dim: 0.45;
+
+  position: relative;
+  touch-action: none;
+}
+
+.neva-lumen > * {
+  /* The vector from this face to the light. Every effect below is derived from it. */
+  --neva-to-light-x: calc(var(--neva-light-x) - var(--neva-face-x, 0px));
+  --neva-to-light-y: calc(var(--neva-light-y) - var(--neva-face-y, 0px));
+
+  background-image: radial-gradient(
+    120% 120% at calc(50% - var(--neva-to-light-x) * var(--neva-lumen-highlight-shift))
+      calc(50% - var(--neva-to-light-y) * var(--neva-lumen-highlight-shift)),
+    var(--neva-lumen-highlight),
+    color-mix(in srgb, var(--neva-lumen-highlight) 12%, transparent) 42%,
+    transparent 70%
+  );
+
+  box-shadow:
+    calc(var(--neva-to-light-x) * var(--neva-lumen-shadow-length) * -1)
+      calc(var(--neva-to-light-y) * var(--neva-lumen-shadow-length) * -1) 16px
+      var(--neva-lumen-shadow),
+    inset calc(var(--neva-to-light-x) * 0.012) calc(var(--neva-to-light-y) * 0.012) 1px
+      rgba(255, 255, 255, 0.14);
+
+  opacity: calc(1 - var(--neva-light-away) * var(--neva-lumen-dim));
+  transition: opacity 400ms ease;
+}
+
+/*
+ * Equivalent access, not identical interaction: the light rests at the top of the surface
+ * instead of following the pointer. The depth stays, the movement goes.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .neva-lumen {
+    --neva-light-x: 50%;
+    --neva-light-y: 0px;
+    --neva-light-away: 0;
+  }
+
+  .neva-lumen > * {
+    transition: none;
+  }
+}

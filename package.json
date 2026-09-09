@@ -20,7 +20,9 @@
     "experimental"
   ],
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist"
   ],
@@ -31,6 +33,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./styles.css": {
+      "types": "./dist/nevaui.css.d.ts",
+      "default": "./dist/nevaui.css"
     }
   },
   "scripts": {
@@ -41,7 +47,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "vite build",
+    "build": "vite build && cp build/nevaui.css.d.ts dist/nevaui.css.d.ts",
     "validate": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build"
   },
   "peerDependencies": {
