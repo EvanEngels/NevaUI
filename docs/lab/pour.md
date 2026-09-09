@@ -106,6 +106,28 @@ cards, the flow glows brightest where it is thickest and darkens to crust at its
 turning the page over sends a bright plume draining upward through cooled rock. The heat
 field doing double duty as physics and palette is what sells it.
 
+## Deferred on purpose: the look
+
+The behaviour is accepted; the **appearance is not**, and that is a deliberate stop rather
+than an oversight. What is on screen is a grid of coloured cells, and it looks like one.
+Sand is flat ochre with per-grain jitter, water is flat blue with depth as opacity, and
+only lava escapes it because its heat field happens to double as a gradient.
+
+Nothing about the simulation forces that. The grid produces a field of values per frame,
+and everything above draws it as one pixel per cell — the cheapest possible reading of it.
+The paths not taken, for whoever picks this up:
+
+- **Surfaces instead of cells.** The boundary between material and air is a contour, and
+  drawing it as a smooth edge rather than a staircase would remove most of the pixel look
+  on its own.
+- **Light.** Sand has no shading, water has no specular and no refraction of what is
+  behind it, and both are flat because nothing computes a normal from the height field.
+- **Grain size.** One cell is one grain. Fine sand and gravel in the same pour would need
+  more than one size, and the model has no concept of one.
+
+None of that changes the physics, which is why it can wait. It is the next piece of work
+on this experiment, not a polish pass.
+
 ## Still open
 
 - **Water is slow across a barrier.** Once a basin fills to the crest of a wall, the only
