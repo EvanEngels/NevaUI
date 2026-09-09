@@ -60,13 +60,24 @@ every side, closer to fifteen when buried inside a flow.
 
 ## What it costs
 
-1080×660 viewport, 5px cells (28,512), median of 200 frames, one frame of work:
+Measured in the browser at last, on a visible tab delivering 146 frames a second, at 5px
+cells. Simulation and drawing separately, which is what the earlier notes could not do:
 
-| material | empty   | half full |
-| -------- | ------- | --------- |
-| sand     | 0.03 ms | 0.53 ms   |
-| water    | 0.28 ms | 1.18 ms   |
-| lava     | 0.03 ms | 0.07 ms   |
+| material | material on screen | simulate | draw    | frame budget used |
+| -------- | ------------------ | -------- | ------- | ----------------- |
+| sand     | 14,401 cells       | 1.30 ms  | 0.70 ms | 29%               |
+| water    | 18,059 cells       | 1.80 ms  | 0.40 ms | 32%               |
+| lava     | 11,143 cells       | 0.70 ms  | 1.10 ms | 26%               |
+
+**Drawing is now measured**, and it is not free: one `putImageData` of a grid-sized buffer
+costs between 0.4 and 1.1 ms, in the same range as the physics. Lava draws the most because
+every cell it owns is opaque and stays owned once frozen; water draws the least because
+most of its cells are below the threshold and are skipped.
+
+A third of a frame for a full page of material, on this machine. Headless measurement of
+the same simulations was two to three times faster, which is the usual gap between a tight
+loop in a warm process and the same loop competing with a browser's own work — worth
+remembering the next time a Node number looks reassuring.
 
 Water is stepped four times a frame; the other two once. It needs it — a single pass moves
 a level towards equilibrium by a fraction of the difference, so a pool settles over
@@ -76,6 +87,24 @@ grain either moves or does not.
 Sand was 1.37 ms until the slope check stopped scanning to the floor. It only ever needed
 to know whether one column stands a few cells above another; counting the rest was work
 thrown away, and removing it made a half-full page 2.6× cheaper.
+
+## Watched at full speed
+
+The earlier notes said the physics was right and how it _feels_ was unverified, because
+every image had been produced headlessly. It has now been watched.
+
+**Sand** is convincing. The pile has dune ridges rather than a smooth cone, the face gives
+way in runs, and a stream falling through a gap between two cards reads as separate grains
+falling, not as a column sliding.
+
+**Water** reads as a liquid and not as sand: it arrives in sheets, spreads flat across the
+top of a block, runs off the edges and pools. Nothing about it resembles the sand any more,
+which was the whole point of separating them.
+
+**Lava** is the best of the three. Two molten streams dribble through the gaps between the
+cards, the flow glows brightest where it is thickest and darkens to crust at its edges, and
+turning the page over sends a bright plume draining upward through cooled rock. The heat
+field doing double duty as physics and palette is what sells it.
 
 ## Still open
 
