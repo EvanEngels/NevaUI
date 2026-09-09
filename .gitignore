@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Test & tooling output
+coverage/
+.vitest/
+.eslintcache
+
+# Local tooling caches
+.cache/
+.temp/
+.vite/
+
+# Environment files — never commit real values.
+# A committed example file (.env.example) must contain placeholders only.
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# Credentials and keys — these must never enter the repository.
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_ed25519
+credentials.json
+secrets.json
+.npmrc
+.netrc
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local AI collaboration contract — kept out of the public repository for now.
+CLAUDE.md
+*CLAUDE.md
+.claude/
