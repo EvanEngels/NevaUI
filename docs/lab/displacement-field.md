@@ -71,19 +71,48 @@ spaced 30, 56 and 90 pixels apart, within 15%. The remaining honesty: the refere
 sits at the field's centre, so elements near an edge, having fewer neighbours to fight,
 travel somewhat further than requested.
 
-### 4. The frame measurement is not yet trustworthy
+### 4. Measured, and it holds
 
-At 224 elements the field held 6.9 ms median / 7.4 ms worst on a 144 Hz display — no
-dropped frames.
+The first numbers here were nonsense, taken in a tab that was never rendering — see
+[measuring frames](./measuring-frames.md#why-the-earlier-numbers-contradicted-each-other).
+Retaken with the harness, in a visible tab, 480-frame window, display period 6.0 ms:
 
-Above that, repeated runs alternated between ~7 ms and ~13–14 ms medians for the _same_
-element count, including 640 elements measuring faster than 320 on a later run. 13.8 ms
-is almost exactly twice 6.9 ms, which points at vsync halving rather than a gradual
-degradation — but the pointer was driven by a synthetic event loop running on the same
-main thread, which is itself part of the load.
+| elements          | script median | p95     | max     | long frames |
+| ----------------- | ------------- | ------- | ------- | ----------- |
+| 80                | 0.10 ms       | 0.20 ms | 0.20 ms | 0           |
+| 160               | 0.10 ms       | 0.20 ms | 0.40 ms | 0           |
+| 320               | 0.30 ms       | 0.40 ms | 0.60 ms | 0           |
+| 640               | 0.50 ms       | 0.70 ms | 2.60 ms | 5 (1%)      |
+| 640, coupling off | 0.40 ms       | 0.60 ms | 0.90 ms | 0           |
 
-**No element limit is claimed.** The current harness cannot support one. Measuring this
-properly needs real pointer input and a profiler, not a page-driven interval.
+At 640 elements the field uses **8% of a frame** and drops 1% of them. Nothing here is
+close to a ceiling.
+
+Two things fall out of the control row. The neighbour coupling — the expensive-sounding
+part, the reason the Concept exists — costs **0.1 ms at 640 elements**. And measured
+separately without any DOM, the solver itself takes 0.028 ms at that size, which means
+**roughly 94% of the script time is the DOM writes, not the physics**.
+
+The field animates `transform` and nothing else, which is why it scales where Lumen's
+per-face mode did not: the compositor moves a transform without redrawing anything.
+
+Caveats as ever: one machine, one display, and the pointer driven by a script on the same
+main thread rather than by a hand.
+
+## Promoted to ⚡ Experimental
+
+On 2026-09-09, once the two things this document called untested had been tested.
+
+**Real content survives it.** The prototype only ever moved dots. Cards with a heading, a
+paragraph and a link behave: the text stays crisp while the cell moves, because a cell is
+transformed rather than re-rendered, and the layout holds. Cells do slide over their
+neighbours when displaced, which reads fine for cards and would read badly for anything
+that must stay in a row.
+
+**Hit targets move with the cell, exactly.** Aim at a link, displace its cell by 120 px,
+and `elementFromPoint` at the place you aimed returns the empty field. That is not a bug
+to fix — it is the effect working — and it settles the question the notes kept deferring:
+controls do not belong in a field, and the component says so first rather than last.
 
 ## Still open
 
@@ -92,8 +121,6 @@ properly needs real pointer input and a profiler, not a page-driven interval.
   regular grid. Arbitrary layouts have no answer yet.
 - `prefers-reduced-motion` currently freezes the elements in place via CSS. It works, but
   it is the trivial answer, not necessarily the right one.
-- Text and hit targets. The prototype uses dots. Whether displaced text stays readable
-  and displaced controls stay clickable is untested.
 - The rest-position pointer distance means the force does not follow an element that has
   already moved. This is deliberate and it is stable, but it may be why fast pointer
   sweeps feel slightly detached.
