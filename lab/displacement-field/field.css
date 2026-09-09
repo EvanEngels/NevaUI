@@ -1,0 +1,22 @@
+.neva-field {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--neva-field-columns), 1fr);
+  gap: var(--neva-field-gap, 18px);
+  touch-action: none;
+}
+
+.neva-field__cell {
+  /* transform only: no layout-affecting property is animated. */
+  transform: translate3d(var(--dx, 0), var(--dy, 0), 0);
+}
+
+/*
+ * Equivalent access, not identical interaction: the field stops moving, and the
+ * elements stay exactly where the layout put them.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .neva-field__cell {
+    transform: none;
+  }
+}
