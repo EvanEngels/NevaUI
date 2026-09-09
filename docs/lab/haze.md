@@ -7,89 +7,92 @@
 | **Spark**   | [💡 Haze](../sparks/haze.md)             |
 | **Run it**  | `pnpm dev` → Haze                        |
 
-## Decision: no simulation at all
+## The first version was condensation, not smoke
 
-The obvious reach for smoke is a fluid solver, and it is the wrong one. What the gesture
-needs is a surface that thins where it has been touched and closes again where it has not.
-That is two compositing operations on an alpha channel, and the browser already does both
-well.
+It was a fixed texture that thinned where the pointer touched it and closed back over. It
+was cheap, it worked, and nothing in it ever moved — so it read as wiping a misted window,
+which the Spark had listed as a way to fail.
 
-- The fog is a texture, built once: a wash plus layered radial blobs at three scales. A
-  handful of gradient fills rather than a per-pixel noise loop.
-- Wiping removes alpha under the pointer, `destination-out`, so the fog thins instead of
-  gaining a dark smear.
-- Healing lays the same texture back down at a very low alpha.
+Asked for smoke that actually moves, and this is the second version: a density field
+carried along a current.
 
-Nothing here is per-pixel JavaScript, which is the difference between this and
-[Pour](./pour.md) — and the reason it costs a tenth as much.
+## Decision: advection along a curl field, not a fluid solver
 
-## The rule the component is built around
+Two choices, and the second is the one that matters.
 
-**The fog never hides anything.** It sits at an opacity where the text underneath stays
-legible and the button underneath stays pressable; wiping makes it clearer, it does not
-make it available.
+**Density is advected, not pushed.** Every frame each cell asks where its material came
+from — one step back along the velocity — and takes what was there. Semi-Lagrangian
+advection is unconditionally stable: nothing can overshoot, because nothing is ever pushed
+anywhere. It is only ever pulled.
 
-Anything else turns a decoration into a gate that only a pointer can open, and there is no
-keyboard equivalent for wiping a window. This is the same conclusion
-[Fracture](./fracture.md) reached from the other direction, and it is becoming the house
-rule: an effect that gates content has to justify itself to everyone who cannot perform it.
+**The current is the curl of a noise field.** A velocity field built by hand pumps: give
+every cell a direction and density piles up wherever directions converge, which reads as a
+leak. The usual fix is to solve for pressure and project the divergence out once per frame,
+which is most of the cost of a fluid solver. The curl of a scalar potential is
+divergence-free _by construction_ — there is nothing to correct, because nothing is wrong.
 
-## Findings
+Measured against a control: a velocity made of two independent noise samples has about
+**eighty times** the divergence of the curl field. What is left in the curl is the residue
+of a central difference, not a leak.
 
-### Rounding a rate down to nothing is a way of switching it off
+## Three things that were wrong and looked right
 
-Healing owes a fraction of alpha per frame. The first version discarded any frame worth
-less than one step of alpha — `1/255` — on the reasonable grounds that it would change no
-pixel.
+### A smoothed interpolant is not smooth enough for a derivative
 
-At sixty frames a second the default rate owes 0.0037 per frame, and a pixel needs 0.0039.
-Every frame was discarded. The fog never healed at all, and every line of the code looked
-correct.
+The noise used a smoothstep, which is continuous in its first derivative and not its
+second. The curl is built from derivatives, so at every lattice line the second derivative
+jumped, the mixed partials stopped cancelling, and the field measured a divergence of
+**6.39** — the identity said zero.
 
-The debt is kept now: most frames draw nothing and cost nothing, and every few frames one
-composite pays off what has built up. A test holds it — sixty frames must heal a full
-second's worth, however the frames are chopped up.
+Perlin's quintic fade is smooth to the second derivative, which is exactly the order the
+identity needs. That one line took the divergence from 6.39 to 0.05.
 
-### A loop that stops when a frame drew nothing stops immediately
+### A uniform field advects to itself
 
-Which is worse, because it is the same mistake one level up and the helper's tests could
-not see it.
+The first working version filled the grid to a flat resting level and relaxed towards it.
+The current ran underneath at full speed and the smoke was **perfectly still**, because
+carrying a uniform field one step along any velocity gives back the same uniform field.
 
-The loop's stop condition was _nothing was drawn this frame_. With an accumulating debt,
-most frames draw nothing — so it stopped on the first frame after a wipe and the hole
-stayed open for good. Correct-looking code, green tests, and the fog visibly never closed.
+Structure is not decoration here — it is what the motion is visible _in_. The resting
+level is now itself uneven and slowly drifting, so the relaxation keeps renewing the
+structure the current keeps stirring.
 
-It now runs while fog is **owed**, not while frames happen to draw, and stops when the fog
-is whole. Only moving the pointer found this.
+### Two rates fighting have a fixed point neither asked for
 
-### It reads as condensation rather than smoke
+Dissipation thinned the smoke and healing refilled it. Together they settled at 0.43 when
+the requested density was 0.72 — the field quietly held two thirds of what it was told to,
+and the arithmetic for why is three lines long once you look.
 
-Which the Spark listed as a way to fail — _"it reads as a smudge rather than as smoke"_ —
-and is half true. Wiping a milky, even fog off glass is exactly what it looks like, and
-that is a good effect. It is not smoke: smoke has structure and drifts, and this has
-neither.
+One relaxation rate, with the resting level as its fixed point, holds exactly what was
+asked for. A test pins it.
 
-Worth deciding rather than drifting into: **condensation is the better version of this
-gesture** and the component should probably be named for what it does. Smoke would need
-motion in the texture itself, which is a different and much more expensive component.
+## This is the one experiment with no rest
+
+Every other component here stops its loop when nothing is moving. Drifting smoke has no
+such state: the current keeps turning and the picture keeps changing, so the loop cannot
+stop on its own.
+
+What stops it is an `IntersectionObserver` — the element leaving the screen — and
+`prefers-reduced-motion`, under which the field is drawn once and never again. Setting
+`flow` to zero also gives back a loop that ends, and that is tested, because the honest
+version of "it never stops" is being able to say exactly when it does.
 
 ## What it costs
 
-Measured in the browser, three cards on screen at once: **0.00 ms median, 0.5 ms worst**
-per frame. A card nobody is pointing at costs nothing at all, because the loop stops when
-the fog is whole.
+Three cards, 700 cells each, measured in the browser: **0.30 ms median, 0.5 ms worst** per
+frame for simulation and drawing together.
 
-One canvas per element, and the Spark's worry — _"on twenty cards that is twenty
-canvases"_ — is real but not heavy: twenty idle canvases are twenty allocations and no
-frames. Twenty being wiped at once is a different question and has not been tried.
+The grid is coarse on purpose — smoke has no detail worth resolving at pixel scale — and
+the canvas is one pixel per cell, stretched by CSS with smoothing left on. The browser's
+interpolation is the last step of the model rather than a compromise in it.
 
 ## Still open
 
-- The texture never moves. Real smoke drifts, and adding that means animating the texture
-  rather than compositing a fixed one.
 - Density is a number, and above roughly 0.8 the content underneath stops being legible.
   Nothing in the component stops a caller setting it there.
-- Under `prefers-reduced-motion` the fog stays and thins slightly. Nothing moves, which is
-  right, but a viewer who cannot use a pointer sees a permanently hazed card — acceptable
-  only because it is never hiding anything.
-- Twenty cards being wiped simultaneously is unmeasured.
+- Twenty cards on a page is twenty grids and twenty loops that never stop. Off-screen ones
+  pause; twenty visible at once is unmeasured.
+- The smoke has no source and no sink — it does not rise, and nothing blows it. It drifts
+  in place, which is right for smoke held against a card and wrong for smoke leaving one.
+- A viewer who cannot use a pointer sees a permanently hazed card. Acceptable only because
+  it never hides anything, which is a rule the component cannot enforce on its caller.

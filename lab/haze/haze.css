@@ -3,25 +3,27 @@
   isolation: isolate;
 }
 
-.haze__fog {
+.haze__smoke {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   /*
-   * The fog is looked through, never clicked. Everything underneath keeps its own pointer
-   * behaviour, which is what makes this a decoration rather than a lid.
+   * The smoke is looked through, never clicked. Everything underneath keeps its own
+   * pointer behaviour, which is what makes this a decoration rather than a lid.
    */
   pointer-events: none;
   border-radius: inherit;
+  /* Smoothing is left on: the browser's interpolation is the last step of the model. */
 }
 
 /*
- * Reduced motion leaves the fog exactly where it is: still there, still legible through,
- * and no longer moving. There is nothing here that has to move for the element to work.
+ * Drifting smoke is nothing but motion, and there is no slower version of a current that
+ * still reads as one. So under reduced motion the field is drawn once and left there:
+ * still smoke, still legible through, and never moving again.
  */
 @media (prefers-reduced-motion: reduce) {
-  .haze__fog {
-    opacity: 0.6;
+  .haze__smoke {
+    opacity: 0.75;
   }
 }

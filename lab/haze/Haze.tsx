@@ -1,37 +1,41 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { createHealer, DEFAULT_HAZE, paintFog, wipe, type HazeSettings } from './fog';
+import { createSmoke, DEFAULT_SMOKE, type SmokeSettings } from './smoke';
 import './haze.css';
 
 export interface HazeProps {
-  /** What the fog sits over. It stays visible and stays interactive. */
+  /** What the smoke drifts over. It stays visible and stays interactive. */
   children: ReactNode;
-  settings?: Partial<HazeSettings>;
+  settings?: Partial<SmokeSettings> | undefined;
+  /** Size of one simulation cell in pixels. Smoke has no detail worth resolving finely. */
+  cellSize?: number | undefined;
   className?: string | undefined;
-  onSample?: ((sample: { frameMs: number; healing: boolean }) => void) | undefined;
+  onSample?: ((sample: { simulateMs: number; drawMs: number; cells: number }) => void) | undefined;
 }
 
 /**
- * Smoke over an element, which the pointer wipes away and which closes back over.
+ * Smoke over an element, drifting, which the pointer wipes away and which closes back
+ * over.
  *
- * The gesture is wiping condensation off glass, and it needs two things: a surface that
- * thins where it has been touched, and one that fills in when it has not. Neither is a
- * fluid simulation. The fog is a texture drawn once; wiping removes alpha under the
- * pointer; healing lays the texture back down a little at a time.
+ * A density field carried along a current, on a coarse grid, drawn to a small canvas and
+ * scaled up with smoothing on — the interpolation the browser does for free is the last
+ * step of the simulation. See `smoke.ts` for the model and `noise.ts` for why the current
+ * needs no pressure solve.
  *
- * ## The rule that keeps it honest
+ * ## The rule this is built around
  *
- * **The fog never hides anything.** It sits at an opacity where the content underneath
- * stays legible and stays clickable — wiping makes it clearer, it does not make it
+ * **The smoke never hides anything.** It sits at a density where the content underneath
+ * stays legible and stays clickable; wiping makes it clearer, it does not make it
  * available. Anything else turns a decoration into a gate that only a pointer can open,
- * and there is no keyboard equivalent for wiping a window.
+ * and there is no keyboard equivalent for waving smoke away.
  *
- * ## What it costs
+ * ## This one never stops
  *
- * One canvas per element, and per frame either nothing or one composite of a
- * canvas-sized texture. The loop stops when the fog is whole and nothing is touching it,
- * so an element nobody is pointing at costs nothing at all.
+ * Every other experiment in this project stops its loop when nothing is moving. Drifting
+ * smoke has no such state — the current keeps turning — so this runs for as long as the
+ * element is on screen, and an `IntersectionObserver` is what stops it rather than
+ * stillness. Under `prefers-reduced-motion` it draws once and never again.
  */
-export function Haze({ children, settings, className, onSample }: HazeProps) {
+export function Haze({ children, settings, cellSize = 10, className, onSample }: HazeProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const settingsRef = useRef(settings);
@@ -50,104 +54,91 @@ export function Haze({ children, settings, className, onSample }: HazeProps) {
     const context = canvas.getContext('2d');
     if (context === null) return;
 
-    const texture = document.createElement('canvas');
-    const textureContext = texture.getContext('2d');
-    if (textureContext === null) return;
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
+    let smoke = createSmoke(1, 1);
+    let image: ImageData | null = null;
     let frameHandle = 0;
     let lastTime = 0;
+    let visible = true;
     let pointer: { x: number; y: number } | null = null;
     let previousPointer: { x: number; y: number } | null = null;
-    let healed = 1;
-    let healer = createHealer({ ...DEFAULT_HAZE, ...settingsRef.current });
-    const random = Math.random;
 
-    const config = (): HazeSettings => ({ ...DEFAULT_HAZE, ...settingsRef.current });
+    const config = (): SmokeSettings => ({ ...DEFAULT_SMOKE, ...settingsRef.current });
 
     const measure = (): void => {
       const bounds = host.getBoundingClientRect();
-      const ratio = Math.min(2, window.devicePixelRatio || 1);
-      const width = Math.max(1, Math.round(bounds.width * ratio));
-      const height = Math.max(1, Math.round(bounds.height * ratio));
+      const columns = Math.max(2, Math.round(bounds.width / cellSize));
+      const rows = Math.max(2, Math.round(bounds.height / cellSize));
 
-      canvas.width = width;
-      canvas.height = height;
-      texture.width = width;
-      texture.height = height;
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      canvas.width = columns;
+      canvas.height = rows;
+      // The canvas is one pixel per cell and stretched by CSS with smoothing left on, so
+      // the browser's own interpolation softens the field for free.
+      image = context.createImageData(columns, rows);
 
-      const current = config();
-      healer = createHealer(current);
-      paintFog(textureContext, width, height, current, random);
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, width, height);
-      context.drawImage(texture, 0, 0);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      healed = 1;
+      smoke = createSmoke(columns, rows, Math.floor(bounds.width) || 1);
+      smoke.fill(config().density);
+    };
+
+    const draw = (): void => {
+      if (image === null) return;
+      const data = image.data;
+      for (let index = 0; index < smoke.density.length; index += 1) {
+        const pixel = index * 4;
+        data[pixel] = 236;
+        data[pixel + 1] = 238;
+        data[pixel + 2] = 242;
+        data[pixel + 3] = Math.max(0, Math.min(255, Math.round((smoke.density[index] ?? 0) * 255)));
+      }
+      context.putImageData(image, 0, 0);
     };
 
     const tick = (time: number): void => {
       const elapsed = lastTime === 0 ? 0 : (time - lastTime) / 1000;
       lastTime = time;
-      const started = performance.now();
       const current = config();
 
       if (pointer !== null) {
-        // The gap between two pointer events can be wider than the brush, so the wipe is
-        // drawn along the line between them. Without it, a fast sweep leaves a dotted
-        // trail of holes instead of a stroke.
         const from = previousPointer ?? pointer;
+        const radius = current.brush / cellSize;
         const distance = Math.hypot(pointer.x - from.x, pointer.y - from.y);
-        const steps = Math.max(1, Math.ceil(distance / (current.brush * 0.4)));
+        // The gap between two pointer events can be wider than the brush, so the wipe is
+        // drawn along the line between them; without it a fast sweep leaves a dotted trail.
+        const steps = Math.max(1, Math.ceil(distance / (radius * 0.4)));
         for (let step = 1; step <= steps; step += 1) {
           const t = step / steps;
-          wipe(
-            context,
-            from.x + (pointer.x - from.x) * t,
-            from.y + (pointer.y - from.y) * t,
-            current
+          smoke.wipe(
+            (from.x + (pointer.x - from.x) * t) / cellSize,
+            (from.y + (pointer.y - from.y) * t) / cellSize,
+            radius,
+            0.9
           );
         }
         previousPointer = pointer;
         pointer = null;
-        healed = 0;
-        healer.reset();
       }
 
-      const heal = healer.add(elapsed);
-      if (heal > 0 && healed < 1) {
-        context.save();
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        context.globalAlpha = heal;
-        context.drawImage(texture, 0, 0);
-        context.restore();
-        healed += heal;
-      }
+      const simulateStart = performance.now();
+      smoke.step(elapsed, current);
+      const simulateMs = performance.now() - simulateStart;
 
-      onSampleRef.current?.({ frameMs: performance.now() - started, healing: healed < 1 });
+      const drawStart = performance.now();
+      draw();
+      const drawMs = performance.now() - drawStart;
 
-      /*
-       * The loop runs while there is fog still owed or a pointer on the element, and not
-       * merely while a frame had something to draw.
-       *
-       * Those are not the same, and the difference was a bug: healing accumulates a debt
-       * and most frames pay nothing, so stopping on the first frame that drew nothing
-       * stopped it on the first frame after a wipe — and the hole stayed open forever. It
-       * looked correct in the code and correct in the helper's tests, and only moving the
-       * pointer showed it.
-       */
-      if (healed >= 1) {
+      onSampleRef.current?.({ simulateMs, drawMs, cells: smoke.columns * smoke.rows });
+
+      if (!visible) {
         frameHandle = 0;
         lastTime = 0;
-        previousPointer = null;
-        healer.reset();
         return;
       }
       frameHandle = requestAnimationFrame(tick);
     };
 
     const start = (): void => {
-      if (frameHandle !== 0) return;
+      if (frameHandle !== 0 || reducedMotion) return;
       lastTime = 0;
       frameHandle = requestAnimationFrame(tick);
     };
@@ -161,35 +152,45 @@ export function Haze({ children, settings, className, onSample }: HazeProps) {
     const handlePointerLeave = (): void => {
       pointer = null;
       previousPointer = null;
-      start();
     };
 
     measure();
+    draw();
+
+    // Smoke that drifts has no rest, so what stops the loop is the element leaving the
+    // screen rather than the picture settling.
+    const onScreen = new IntersectionObserver((entries) => {
+      visible = entries[0]?.isIntersecting ?? true;
+      if (visible) start();
+    });
+    onScreen.observe(host);
 
     let observedWidth = host.getBoundingClientRect().width;
-    const observer = new ResizeObserver((entries) => {
+    const size = new ResizeObserver((entries) => {
       const width = entries[0]?.contentRect.width ?? observedWidth;
       if (Math.abs(width - observedWidth) < 1) return;
       observedWidth = width;
       measure();
+      draw();
     });
-    observer.observe(host);
+    size.observe(host);
 
     host.addEventListener('pointermove', handlePointerMove);
     host.addEventListener('pointerleave', handlePointerLeave);
 
     return () => {
-      observer.disconnect();
+      onScreen.disconnect();
+      size.disconnect();
       host.removeEventListener('pointermove', handlePointerMove);
       host.removeEventListener('pointerleave', handlePointerLeave);
       if (frameHandle !== 0) cancelAnimationFrame(frameHandle);
     };
-  }, []);
+  }, [cellSize]);
 
   return (
     <div ref={hostRef} className={className === undefined ? 'haze' : `haze ${className}`}>
       {children}
-      <canvas ref={canvasRef} className="haze__fog" aria-hidden="true" />
+      <canvas ref={canvasRef} className="haze__smoke" aria-hidden="true" />
     </div>
   );
 }

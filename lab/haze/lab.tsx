@@ -1,33 +1,28 @@
 import { useMemo, useRef, useState } from 'react';
 import { Haze } from './Haze';
-import { DEFAULT_HAZE } from './fog';
+import { DEFAULT_SMOKE } from './smoke';
 import { Slider } from '../playground/Slider';
 
 export function HazeLab() {
-  const [brush, setBrush] = useState(DEFAULT_HAZE.brush);
-  const [density, setDensity] = useState(DEFAULT_HAZE.density);
-  const [healRate, setHealRate] = useState(DEFAULT_HAZE.healRate);
-  const [grain, setGrain] = useState(DEFAULT_HAZE.grain);
+  const [brush, setBrush] = useState(DEFAULT_SMOKE.brush);
+  const [density, setDensity] = useState(DEFAULT_SMOKE.density);
+  const [flow, setFlow] = useState(DEFAULT_SMOKE.flow);
+  const [swirl, setSwirl] = useState(DEFAULT_SMOKE.swirl);
 
-  const settings = useMemo(
-    () => ({ brush, density, healRate, grain }),
-    [brush, density, healRate, grain]
-  );
+  const settings = useMemo(() => ({ brush, density, flow, swirl }), [brush, density, flow, swirl]);
 
   const readoutRef = useRef<HTMLSpanElement>(null);
   const samples = useRef<number[]>([]);
   const handleSample = useMemo(
     () =>
-      ({ frameMs, healing }: { frameMs: number; healing: boolean }) => {
+      ({ simulateMs, drawMs, cells }: { simulateMs: number; drawMs: number; cells: number }) => {
         const window = samples.current;
-        window.push(frameMs);
+        window.push(simulateMs + drawMs);
         if (window.length < 30) return;
         const sorted = [...window].sort((a, b) => a - b);
         window.length = 0;
         if (readoutRef.current !== null) {
-          readoutRef.current.textContent =
-            `${(sorted[15] ?? 0).toFixed(2)} ms median · ${(sorted[29] ?? 0).toFixed(2)} worst · ` +
-            (healing ? 'healing' : 'at rest');
+          readoutRef.current.textContent = `${cells} cells · ${(sorted[15] ?? 0).toFixed(2)} ms median · ${(sorted[29] ?? 0).toFixed(2)} worst`;
         }
       },
     []
@@ -45,17 +40,10 @@ export function HazeLab() {
           step={0.01}
           onChange={setDensity}
         />
-        <Slider
-          label="heal rate"
-          value={healRate}
-          min={0}
-          max={1.2}
-          step={0.02}
-          onChange={setHealRate}
-        >
-          {healRate === 0 ? 'never' : healRate.toFixed(2)}
+        <Slider label="flow" value={flow} min={0} max={16} step={0.5} onChange={setFlow}>
+          {flow === 0 ? 'still' : flow.toFixed(1)}
         </Slider>
-        <Slider label="grain" value={grain} min={40} max={300} step={10} onChange={setGrain} />
+        <Slider label="swirl" value={swirl} min={0.02} max={0.3} step={0.01} onChange={setSwirl} />
         <p className="readout readout--frames">
           <span ref={readoutRef}>move the pointer over a card</span>
         </p>
