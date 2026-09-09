@@ -1,25 +1,23 @@
-.fracture {
-  --fracture-art:
-    radial-gradient(80% 120% at 18% 12%, rgba(255, 214, 170, 0.95), transparent 55%),
-    radial-gradient(70% 100% at 82% 22%, rgba(150, 190, 255, 0.9), transparent 58%),
-    radial-gradient(90% 120% at 50% 108%, rgba(226, 150, 255, 0.75), transparent 62%),
-    conic-gradient(from 210deg at 42% 40%, #16161b, #24242e, #14141a, #26262f, #16161b);
-
+/*
+ * Fracture — a panel that breaks where you strike it.
+ *
+ * Size, colour and corners belong to the caller. What is set here is only what the break
+ * needs: a positioning context for the shards, a clip so pieces leave the panel rather
+ * than the page, and a stacking context so they cannot rise above unrelated content.
+ */
+.neva-fracture {
   position: relative;
-  height: min(64vh, 480px);
-  border-radius: 14px;
   overflow: hidden;
-  cursor: crosshair;
   touch-action: none;
   isolation: isolate;
 }
 
-.fracture__face,
-.fracture__shard {
+.neva-fracture__face,
+.neva-fracture__shard {
   position: absolute;
   inset: 0;
-  background-image: var(--fracture-art);
-  background-size: 100% 100%;
+  /* Whatever the caller styled the panel with shows through every shard. */
+  background: inherit;
 }
 
 /*
@@ -28,28 +26,16 @@
  * accessibility tree, where `visibility: hidden` would have removed it and left the
  * content readable only as fifty-two aria-hidden copies, which is to say not at all.
  */
-.fracture--broken > .fracture__face {
+.neva-fracture--broken > .neva-fracture__face {
   opacity: 0;
   pointer-events: none;
 }
 
-.fracture__shard {
+.neva-fracture__shard {
   will-change: transform;
   overflow: hidden;
   /* A hairline of light along each break, so the shards read as edges and not as a blur. */
   box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.22);
-}
-
-.fracture__hint {
-  position: absolute;
-  inset: auto 0 18px;
-  margin: 0;
-  text-align: center;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(12, 12, 14, 0.55);
-  pointer-events: none;
 }
 
 /*
@@ -57,7 +43,7 @@
  * the shards separate slightly and return without being thrown.
  */
 @media (prefers-reduced-motion: reduce) {
-  .fracture__shard {
+  .neva-fracture__shard {
     will-change: auto;
   }
 }

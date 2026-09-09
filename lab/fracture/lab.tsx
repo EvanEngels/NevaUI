@@ -1,16 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Fracture } from './Fracture';
-import { DEFAULT_FRACTURE } from './shards';
+// Imported through the package entry, exactly as a consumer would.
+import { Fracture, FRACTURE_DEFAULTS as DEFAULT_FRACTURE } from '../../src';
 import { Slider } from '../playground/Slider';
-import { createFrameRecorder } from '../playground/frames';
-import { FrameReadout } from '../playground/FrameReadout';
+import { DeliveryMonitor } from '../playground/DeliveryMonitor';
 
 export function FractureLab() {
   const [rays, setRays] = useState(DEFAULT_FRACTURE.rays);
   const [rings, setRings] = useState(DEFAULT_FRACTURE.rings);
   const [irregularity, setIrregularity] = useState(DEFAULT_FRACTURE.irregularity);
   const [force, setForce] = useState(900);
-  const [recorder] = useState(createFrameRecorder);
 
   const settings = useMemo(() => ({ rays, rings, irregularity }), [rays, rings, irregularity]);
 
@@ -30,10 +28,10 @@ export function FractureLab() {
         <Slider label="force" value={force} min={100} max={2600} step={50} onChange={setForce} />
         {/* rays x rings is the mesh, not the result: cells that fall outside the panel
             are clipped away, and roughly a third of them survive. */}
-        <FrameReadout recorder={recorder} subject={`up to ${rays * rings} shards`} />
+        <DeliveryMonitor subject={`up to ${rays * rings} shards`} />
       </div>
 
-      <Fracture settings={settings} force={force} onFrame={recorder.record}>
+      <Fracture settings={settings} force={force} className="fracture-demo-panel">
         <div className="fracture-demo">
           <h3>Break the sentence</h3>
           <p>

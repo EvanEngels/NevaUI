@@ -211,3 +211,21 @@ header p {
     sans-serif;
   cursor: crosshair;
 }
+
+.fracture-demo-panel {
+  height: min(64vh, 480px);
+  border-radius: 14px;
+  cursor: crosshair;
+}
+
+/*
+ * The art lives inside the children, not on the panel. The panel is the frame that holds
+ * the pieces; only what is inside it breaks.
+ */
+.fracture-demo {
+  background:
+    radial-gradient(80% 120% at 18% 12%, rgba(255, 214, 170, 0.95), transparent 55%),
+    radial-gradient(70% 100% at 82% 22%, rgba(150, 190, 255, 0.9), transparent 58%),
+    radial-gradient(90% 120% at 50% 108%, rgba(226, 150, 255, 0.75), transparent 62%),
+    conic-gradient(from 210deg at 42% 40%, #16161b, #24242e, #14141a, #26262f, #16161b);
+}
