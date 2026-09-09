@@ -14,6 +14,9 @@ export default defineConfig({
       entry: 'src/index.ts',
       formats: ['es'],
       fileName: 'index',
+      // Named rather than left as `style.css`, so the import a consumer writes says what
+      // it is importing.
+      cssFileName: 'nevaui',
     },
     rollupOptions: {
       // React is a peer dependency: it must never be bundled into the library.

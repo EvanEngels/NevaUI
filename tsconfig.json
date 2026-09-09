@@ -24,5 +24,5 @@
     /* Types the test setup and Vite config rely on. */
     "types": ["@testing-library/jest-dom/vitest"]
   },
-  "include": ["src", "lab", "vite.config.ts", "vitest.setup.ts"]
+  "include": ["src", "lab", "build", "vite.config.ts", "vitest.setup.ts"]
 }
