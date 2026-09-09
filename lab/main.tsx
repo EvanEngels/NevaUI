@@ -1,6 +1,7 @@
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DisplacementFieldLab } from './displacement-field/lab';
+import { PourLab } from './pour/lab';
 import { WeightLab } from './weight/lab';
 import { LumenLab } from './lumen/lab';
 import { FractureLab } from './fracture/lab';
@@ -14,6 +15,13 @@ interface Experiment {
 }
 
 const EXPERIMENTS: Experiment[] = [
+  {
+    id: 'pour',
+    title: 'Pour',
+    summary:
+      'Sand, water or lava falling onto the page — and piling on the page itself. Every block below is terrain the material lands on. Turn it over and it drains back out.',
+    render: () => <PourLab />,
+  },
   {
     id: 'displacement-field',
     title: 'Displacement Field',
