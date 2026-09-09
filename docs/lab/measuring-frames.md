@@ -81,7 +81,5 @@ something lags.
 
 ## Results
 
-None recorded yet from the protocol. One result has arrived from ordinary use, which is
-worth more than nothing and less than a measurement: **Lumen lags badly at large face
-counts**. That is written up in [its lab notes](./lumen.md#the-cost-is-paint-and-it-is-real)
-and is the first thing the protocol should be pointed at.
+The first numbers the project has. See [Lumen's notes](./lumen.md#what-it-costs-measured)
+for what they mean and what they cost to believe.

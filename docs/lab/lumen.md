@@ -101,6 +101,46 @@ It is a softer effect — one pool of light across the surface instead of each f
 its own — and that is the trade. The cheapest technology that produces the experience won,
 and it turned out not to be the clever one.
 
+Flat faces get their relief from a bevel lit from above, fixed and free: it never changes,
+so it never repaints, and it stops the mode reading as a gradient sliding over paper.
+
+## What it costs, measured
+
+Reported back from use first — _flat holds at column counts where faces stutters_ — and
+then measured, once the tab happened to be delivering frames.
+
+Pointer swept continuously across the surface, 4.5 second window, 480 frames, one display
+period ≈ 6.1 ms. A frame is _long_ when it took more than one and a half display periods
+to arrive.
+
+| `depth` | faces on screen | median frame | long frames |
+| ------- | --------------- | ------------ | ----------- |
+| flat    | 84              | 6.9 ms       | **0 (0%)**  |
+| flat    | 210             | 6.9 ms       | **0 (0%)**  |
+| flat    | 420             | 6.9 ms       | **0 (0%)**  |
+| faces   | 12              | 6.9 ms       | 0 (0%)      |
+| faces   | 24              | 6.9 ms       | 0 (0%)      |
+| faces   | 40              | 7.0 ms       | 164 (34%)   |
+| faces   | 84              | 7.3 ms       | 207 (43%)   |
+| faces   | 210             | 13.9 ms      | 262 (55%)   |
+| faces   | 420             | 20.7 ms      | 293 (61%)   |
+
+**Flat does not move.** Identical figures at five times the faces — the cost genuinely
+does not grow with the surface, which is what a composited transform buys.
+
+**Faces gives way between 24 and 40 visible faces**, far sooner than the shape of the
+effect suggests, and by 210 the median frame is more than twice a display period.
+
+### What these numbers are worth
+
+One machine, one display, one face size, and the pointer driven by a script on the same
+main thread rather than by a hand. The driver is the reason to trust the comparison rather
+than the absolute values: **it is identical in both modes, and flat reports zero long
+frames under it.** Whatever the script costs, it is not what makes faces drop frames.
+
+Treat the threshold as an order of magnitude — tens of faces, not hundreds — and not as a
+number to design against.
+
 ## Still open
 
 - Paint cost is unmeasured. That is the real ceiling and no number is claimed.

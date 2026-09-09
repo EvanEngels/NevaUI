@@ -68,9 +68,11 @@ Read these before using it. Experimental means honest, not finished.
   them. What costs is **faces visible at once**, not faces in the DOM. No count is
   recommended, because none has been measured — see
   [the lab notes](../lab/lumen.md#columns-cost-rows-do-not).
-- The default `depth="flat"` exists because of that. It has no per-face repaint at all, so
-  it has no face-count limit to state, but it is a softer effect: the light pools across
-  the surface instead of each face catching its own.
+- The default `depth="flat"` exists because of that. Confirmed in use: it holds at column
+  counts where `faces` stutters. It has no per-face repaint at all, so there is no
+  face-count limit to state. It is a softer effect — the light pools across the surface
+  instead of each face catching its own — and the relief comes instead from a fixed bevel
+  that costs nothing per frame.
 
 - **Pointer only.** There is no keyboard or touch equivalent, and there is nothing to
   operate: the light is decoration over content that must already stand on its own.
