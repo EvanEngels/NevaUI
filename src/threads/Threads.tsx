@@ -33,7 +33,7 @@ export interface ThreadsProps {
   links: readonly Link[];
   settings?: Partial<ThreadsSettings> | undefined;
   className?: string | undefined;
-  onSample?: ((sample: { threads: number; frameMs: number; resting: boolean }) => void) | undefined;
+  style?: React.CSSProperties | undefined;
 }
 
 /**
@@ -61,15 +61,9 @@ export interface ThreadsProps {
  * see it, so whatever the threads illustrate must also be in the content or the markup.
  * Under `prefers-reduced-motion` they are drawn once, straight and still.
  */
-export function Threads({ children, links, settings, className, onSample }: ThreadsProps) {
+export function Threads({ children, links, settings, className, style }: ThreadsProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const onSampleRef = useRef(onSample);
-
-  useEffect(() => {
-    onSampleRef.current = onSample;
-  }, [onSample]);
-
   const items = Children.toArray(children);
   const key = links.map((link) => `${link.from}>${link.to}`).join('|');
 
@@ -121,7 +115,7 @@ export function Threads({ children, links, settings, className, onSample }: Thre
         if (from === null || to === null) continue;
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('class', 'threads__line');
+        path.setAttribute('class', 'neva-threads__line');
         path.setAttribute('fill', 'none');
         svg.appendChild(path);
 
@@ -155,8 +149,6 @@ export function Threads({ children, links, settings, className, onSample }: Thre
     const tick = (time: number): void => {
       const elapsed = lastTime === 0 ? 0 : (time - lastTime) / 1000;
       lastTime = time;
-      const started = performance.now();
-
       let resting = true;
       for (const thread of threads) {
         const touched =
@@ -173,12 +165,6 @@ export function Threads({ children, links, settings, className, onSample }: Thre
         if (!thread.rope.isAtRest()) resting = false;
       }
       write();
-
-      onSampleRef.current?.({
-        threads: threads.length,
-        frameMs: performance.now() - started,
-        resting,
-      });
 
       /*
        * The rest check is skipped on the frame that starts the loop.
@@ -247,9 +233,13 @@ export function Threads({ children, links, settings, className, onSample }: Thre
   }, [key, links, settings]);
 
   return (
-    <div ref={hostRef} className={className === undefined ? 'threads' : `threads ${className}`}>
+    <div
+      ref={hostRef}
+      className={className === undefined ? 'neva-threads' : `neva-threads ${className}`}
+      style={style}
+    >
       {/* Decoration over a relationship that must exist without it. */}
-      <svg ref={svgRef} className="threads__canvas" aria-hidden="true" />
+      <svg ref={svgRef} className="neva-threads__canvas" aria-hidden="true" />
       {items}
     </div>
   );

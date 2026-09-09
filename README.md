@@ -70,7 +70,7 @@ pnpm add nevaui
 ```
 
 ```tsx
-import { DisplacementField, Fracture, Lumen, Weight } from 'nevaui';
+import { DisplacementField, Fracture, Haze, Lens, Lumen, Sediment, Threads, Weight } from 'nevaui';
 import 'nevaui/styles.css';
 ```
 
@@ -85,9 +85,10 @@ import 'nevaui/styles.css';
 
 Prototypes. Not exported, not published, APIs will change.
 
-|                                |                                                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| **[Pour](./docs/lab/pour.md)** | Sand, water or lava falling onto the page and piling on the layout itself — every element is terrain the material buries. |
+|                                |                                                                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **[Pour](./docs/lab/pour.md)** | Sand, water or lava falling onto the page and piling on the layout itself. Held back: the look is deferred by decision. |
+| **[Wake](./docs/lab/wake.md)** | Fast movement leaves a trail that fades. Held back: it has not shown that it informs rather than decorates.             |
 
 ### 📦 Archived
 

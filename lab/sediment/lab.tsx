@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Sediment } from './Sediment';
-import { DEFAULT_SETTLE } from './settle';
+// Imported through the package entry, exactly as a consumer would.
+import { Sediment, SEDIMENT_DEFAULTS as DEFAULT_SETTLE } from '../../src';
 import { Slider } from '../playground/Slider';
 
 interface Entry {
@@ -48,22 +48,6 @@ export function SedimentLab() {
   }, []);
 
   const readoutRef = useRef<HTMLSpanElement>(null);
-  const samples = useRef<number[]>([]);
-  const handleSample = useCallback(
-    ({ items, frameMs, resting }: { items: number; frameMs: number; resting: boolean }) => {
-      const window = samples.current;
-      window.push(frameMs);
-      if (window.length < 20 && !resting) return;
-      const sorted = [...window].sort((a, b) => a - b);
-      window.length = 0;
-      if (readoutRef.current !== null) {
-        readoutRef.current.textContent =
-          `${items} items · ${(sorted[Math.floor(sorted.length / 2)] ?? 0).toFixed(2)} ms median · ` +
-          (resting ? 'at rest' : 'settling');
-      }
-    },
-    []
-  );
 
   return (
     <>
@@ -91,7 +75,7 @@ export function SedimentLab() {
           Add an event
         </button>
         <p className="readout readout--frames">
-          <span ref={readoutRef}>add or dismiss an event</span>
+          <span ref={readoutRef}>transform only, and the loop stops when the list arrives</span>
         </p>
       </div>
 
@@ -102,7 +86,7 @@ export function SedimentLab() {
         rather than a bug.
       </p>
 
-      <Sediment settings={settings} className="sediment-demo" onSample={handleSample}>
+      <Sediment settings={settings} className="sediment-demo">
         {entries.map((entry) => (
           <article key={entry.id} className="sediment-demo__row">
             <span className="sediment-demo__label">{entry.label}</span>

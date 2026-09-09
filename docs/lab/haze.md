@@ -1,11 +1,11 @@
 # 🧠🧪 Haze
 
-|             |                                          |
-| ----------- | ---------------------------------------- |
-| **Stage**   | 🧠 Concept, validated directly in 🧪 Lab |
-| **Created** | 2026-09-09                               |
-| **Spark**   | [💡 Haze](../sparks/haze.md)             |
-| **Run it**  | `pnpm dev` → Haze                        |
+|             |                                                                      |
+| ----------- | -------------------------------------------------------------------- |
+| **Stage**   | 🧪 Lab → ⚡ **promoted**, see [the component](../components/haze.md) |
+| **Created** | 2026-09-09                                                           |
+| **Spark**   | [💡 Haze](../sparks/haze.md)                                         |
+| **Run it**  | `pnpm dev` → Haze                                                    |
 
 ## The first version was condensation, not smoke
 

@@ -9,12 +9,14 @@ export interface HazeProps {
   /** Size of one simulation cell in pixels. Smoke has no detail worth resolving finely. */
   cellSize?: number | undefined;
   className?: string | undefined;
-  onSample?: ((sample: { simulateMs: number; drawMs: number; cells: number }) => void) | undefined;
+  style?: React.CSSProperties | undefined;
 }
 
 /**
  * Smoke over an element, drifting, which the pointer wipes away and which closes back
  * over.
+ *
+ * ⚡ Experimental. The API will change.
  *
  * A density field carried along a current, on a coarse grid, drawn to a small canvas and
  * scaled up with smoothing on — the interpolation the browser does for free is the last
@@ -35,16 +37,13 @@ export interface HazeProps {
  * element is on screen, and an `IntersectionObserver` is what stops it rather than
  * stillness. Under `prefers-reduced-motion` it draws once and never again.
  */
-export function Haze({ children, settings, cellSize = 10, className, onSample }: HazeProps) {
+export function Haze({ children, settings, cellSize = 10, className, style }: HazeProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const settingsRef = useRef(settings);
-  const onSampleRef = useRef(onSample);
-
   useEffect(() => {
     settingsRef.current = settings;
-    onSampleRef.current = onSample;
-  }, [settings, onSample]);
+  }, [settings]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -119,15 +118,8 @@ export function Haze({ children, settings, cellSize = 10, className, onSample }:
         pointer = null;
       }
 
-      const simulateStart = performance.now();
       smoke.step(elapsed, current);
-      const simulateMs = performance.now() - simulateStart;
-
-      const drawStart = performance.now();
       draw();
-      const drawMs = performance.now() - drawStart;
-
-      onSampleRef.current?.({ simulateMs, drawMs, cells: smoke.columns * smoke.rows });
 
       if (!visible) {
         frameHandle = 0;
@@ -188,9 +180,13 @@ export function Haze({ children, settings, cellSize = 10, className, onSample }:
   }, [cellSize]);
 
   return (
-    <div ref={hostRef} className={className === undefined ? 'haze' : `haze ${className}`}>
+    <div
+      ref={hostRef}
+      className={className === undefined ? 'neva-haze' : `neva-haze ${className}`}
+      style={style}
+    >
       {children}
-      <canvas ref={canvasRef} className="haze__smoke" aria-hidden="true" />
+      <canvas ref={canvasRef} className="neva-haze__smoke" aria-hidden="true" />
     </div>
   );
 }

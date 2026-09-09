@@ -1,15 +1,15 @@
-.lens {
+.neva-lens {
   position: relative;
-  --lens-x: 50%;
-  --lens-y: 50%;
+  --neva-lens-x: 50%;
+  --neva-lens-y: 50%;
 }
 
-.lens__disc {
+.neva-lens__disc {
   position: absolute;
   left: 0;
   top: 0;
-  width: calc(var(--lens-radius) * 2);
-  height: calc(var(--lens-radius) * 2);
+  width: calc(var(--neva-lens-radius) * 2);
+  height: calc(var(--neva-lens-radius) * 2);
   border-radius: 50%;
   overflow: hidden;
   opacity: 0;
@@ -19,8 +19,8 @@
    */
   pointer-events: none;
   transform: translate3d(
-    calc(var(--lens-x) - var(--lens-radius)),
-    calc(var(--lens-y) - var(--lens-radius)),
+    calc(var(--neva-lens-x) - var(--neva-lens-radius)),
+    calc(var(--neva-lens-y) - var(--neva-lens-radius)),
     0
   );
   box-shadow:
@@ -29,11 +29,11 @@
   transition: opacity 160ms ease;
 }
 
-.lens--on .lens__disc {
+.neva-lens--on .neva-lens__disc {
   opacity: 1;
 }
 
-.lens__copy {
+.neva-lens__copy {
   position: absolute;
   left: 0;
   top: 0;
@@ -43,7 +43,7 @@
 
 /* No lens at all for a viewer who asked for less motion: it exists only while moving. */
 @media (prefers-reduced-motion: reduce) {
-  .lens__disc {
+  .neva-lens__disc {
     display: none;
   }
 }

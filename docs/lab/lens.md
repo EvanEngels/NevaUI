@@ -1,11 +1,11 @@
 # 🧠🧪 Lens
 
-|             |                                          |
-| ----------- | ---------------------------------------- |
-| **Stage**   | 🧠 Concept, validated directly in 🧪 Lab |
-| **Created** | 2026-09-09                               |
-| **Spark**   | [💡 Lens](../sparks/lens.md)             |
-| **Run it**  | `pnpm dev` → Lens                        |
+|             |                                                                      |
+| ----------- | -------------------------------------------------------------------- |
+| **Stage**   | 🧪 Lab → ⚡ **promoted**, see [the component](../components/lens.md) |
+| **Created** | 2026-09-09                                                           |
+| **Spark**   | [💡 Lens](../sparks/lens.md)                                         |
+| **Run it**  | `pnpm dev` → Lens                                                    |
 
 ## Decision: clone once, transform per frame
 
