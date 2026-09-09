@@ -3,15 +3,62 @@
 Experimental React component library exploring motion, interaction, spatial interfaces,
 physics, visual effects and layout.
 
-> **Status: foundation.** The repository is set up; no components have been published yet.
+> **Status: ⚡ Experimental.** Eight components, each documented with what it costs and
+> what it cannot do. APIs will change while the version starts with a zero.
 
 NevaUI is the first open-source project under the **Neva** brand.
 
 ## What is NevaUI?
 
 A library of original React components built around movement and interaction rather than
-around the usual catalogue of buttons, cards and modals. Components are independent: you
-should be able to use one without adopting a runtime, a provider tree or the rest of the library.
+the usual catalogue of buttons, cards and modals.
+
+Components are independent: you can use one without adopting a runtime, a provider tree or
+the rest of the library. **There are no runtime dependencies** — installing it adds no
+third-party code to your tree.
+
+## Components
+
+### ⚡ Experimental
+
+Usable and honest about what they cost. No API stability guarantee.
+
+```bash
+pnpm add nevaui
+```
+
+```tsx
+import { DisplacementField, Fracture, Haze, Lens, Lumen, Sediment, Threads, Weight } from 'nevaui';
+import 'nevaui/styles.css';
+```
+
+|                                                                   |                                                                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **[Displacement Field](./docs/components/displacement-field.md)** | A grid the pointer pushes aside, where displacing one cell compresses its neighbours. 640 cells cost 8% of a frame. |
+| **[Lumen](./docs/components/lumen.md)**                           | A surface lit by one moving light, at two DOM writes per frame however many faces it has.                           |
+| **[Weight](./docs/components/weight.md)**                         | A light that falls on text and makes the letters heavier, without moving a single word.                             |
+| **[Fracture](./docs/components/fracture.md)**                     | A panel that breaks along geometry computed from where you struck it, cutting through the real content.             |
+
+### 🧪 In the Lab
+
+Prototypes. Not exported, not published, APIs will change.
+
+|                                |                                                                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **[Pour](./docs/lab/pour.md)** | Sand, water or lava falling onto the page and piling on the layout itself. Held back: the look is deferred by decision. |
+| **[Wake](./docs/lab/wake.md)** | Fast movement leaves a trail that fades. Held back: it has not shown that it informs rather than decorates.             |
+
+### 📦 Archived
+
+Experiments that taught something and stopped. A documented dead end is a result.
+
+|                                        |                                                                      |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| **[Tether](./docs/archive/tether.md)** | An inextensible line with mass. It worked. It never found a purpose. |
+
+Each carries its own notes — the [sparks](./docs/sparks), the [concepts](./docs/concepts),
+and what the [lab](./docs/lab) actually showed, including what failed and how frames are
+[measured](./docs/lab/measuring-frames.md). `pnpm dev` runs the playground for all of it.
 
 ## Why does it exist?
 
@@ -59,48 +106,15 @@ Spark → Concept → Lab → Experimental → Stable
 Experiments that do not work out are archived with what was explored, what was learned and
 why it stopped. A documented dead end is a result.
 
-## Components
+## Publishing
 
-### ⚡ Experimental
+`nevaui` is published to npm from a tag, by a workflow with no stored credentials — it
+uses OIDC, publishes with provenance, and never runs an install script in the job that
+can publish. See [publishing](./docs/publishing.md) for how it works and what has to be
+done by hand.
 
-Usable and honest about what they cost. No API stability guarantee.
-
-```bash
-pnpm add nevaui
-```
-
-```tsx
-import { DisplacementField, Fracture, Haze, Lens, Lumen, Sediment, Threads, Weight } from 'nevaui';
-import 'nevaui/styles.css';
-```
-
-|                                                                   |                                                                                                                     |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **[Displacement Field](./docs/components/displacement-field.md)** | A grid the pointer pushes aside, where displacing one cell compresses its neighbours. 640 cells cost 8% of a frame. |
-| **[Lumen](./docs/components/lumen.md)**                           | A surface lit by one moving light, at two DOM writes per frame however many faces it has.                           |
-| **[Weight](./docs/components/weight.md)**                         | A light that falls on text and makes the letters heavier, without moving a single word.                             |
-| **[Fracture](./docs/components/fracture.md)**                     | A panel that breaks along geometry computed from where you struck it, cutting through the real content.             |
-
-### 🧪 In the Lab
-
-Prototypes. Not exported, not published, APIs will change.
-
-|                                |                                                                                                                         |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| **[Pour](./docs/lab/pour.md)** | Sand, water or lava falling onto the page and piling on the layout itself. Held back: the look is deferred by decision. |
-| **[Wake](./docs/lab/wake.md)** | Fast movement leaves a trail that fades. Held back: it has not shown that it informs rather than decorates.             |
-
-### 📦 Archived
-
-Experiments that taught something and stopped. A documented dead end is a result.
-
-|                                        |                                                                      |
-| -------------------------------------- | -------------------------------------------------------------------- |
-| **[Tether](./docs/archive/tether.md)** | An inextensible line with mass. It worked. It never found a purpose. |
-
-Each carries its own notes — the [sparks](./docs/sparks), the [concepts](./docs/concepts),
-and what the [lab](./docs/lab) actually showed, including what failed and how frames are
-[measured](./docs/lab/measuring-frames.md). `pnpm dev` runs the playground for all of it.
+The package has **no runtime dependencies**: installing it adds no third-party code to
+your tree.
 
 ## Development
 
