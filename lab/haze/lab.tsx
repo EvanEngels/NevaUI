@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { Haze } from './Haze';
-import { DEFAULT_SMOKE } from './smoke';
+// Imported through the package entry, exactly as a consumer would.
+import { Haze, HAZE_DEFAULTS as DEFAULT_SMOKE } from '../../src';
 import { Slider } from '../playground/Slider';
 
 export function HazeLab() {
@@ -12,21 +12,6 @@ export function HazeLab() {
   const settings = useMemo(() => ({ brush, density, flow, swirl }), [brush, density, flow, swirl]);
 
   const readoutRef = useRef<HTMLSpanElement>(null);
-  const samples = useRef<number[]>([]);
-  const handleSample = useMemo(
-    () =>
-      ({ simulateMs, drawMs, cells }: { simulateMs: number; drawMs: number; cells: number }) => {
-        const window = samples.current;
-        window.push(simulateMs + drawMs);
-        if (window.length < 30) return;
-        const sorted = [...window].sort((a, b) => a - b);
-        window.length = 0;
-        if (readoutRef.current !== null) {
-          readoutRef.current.textContent = `${cells} cells · ${(sorted[15] ?? 0).toFixed(2)} ms median · ${(sorted[29] ?? 0).toFixed(2)} worst`;
-        }
-      },
-    []
-  );
 
   return (
     <>
@@ -45,7 +30,7 @@ export function HazeLab() {
         </Slider>
         <Slider label="swirl" value={swirl} min={0.02} max={0.3} step={0.01} onChange={setSwirl} />
         <p className="readout readout--frames">
-          <span ref={readoutRef}>move the pointer over a card</span>
+          <span ref={readoutRef}>a coarse grid, drawn once per frame and stretched by CSS</span>
         </p>
       </div>
 
@@ -58,7 +43,7 @@ export function HazeLab() {
 
       <div className="haze-demo">
         {['Condensation', 'Breath', 'Steam'].map((title) => (
-          <Haze key={title} settings={settings} className="haze-demo__card" onSample={handleSample}>
+          <Haze key={title} settings={settings} className="haze-demo__card">
             <article>
               <h3>{title}</h3>
               <p>

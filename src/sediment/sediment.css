@@ -1,4 +1,4 @@
-.sediment > * {
+.neva-sediment > * {
   /* transform only: the layout is the browser's, and this borrows the difference. */
   transform: translate3d(0, var(--dy, 0), 0);
 }
@@ -8,7 +8,7 @@
  * immediately. The component starts no loop and offsets nothing in this case.
  */
 @media (prefers-reduced-motion: reduce) {
-  .sediment > * {
+  .neva-sediment > * {
     transform: none;
   }
 }

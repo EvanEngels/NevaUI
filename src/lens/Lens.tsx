@@ -10,12 +10,14 @@ export interface LensProps {
   /** Radius of the disc, in pixels. */
   radius?: number | undefined;
   className?: string | undefined;
-  onSample?: ((sample: { nodes: number; frameMs: number }) => void) | undefined;
+  style?: React.CSSProperties | undefined;
 }
 
 /**
  * A disc you move over dense content, which magnifies the **real DOM** beneath it rather
- * than a picture of it. Text under the lens is text: it is selectable, it renders at the
+ * than a picture of it.
+ *
+ * ⚡ Experimental. The API will change. Text under the lens is text: it is selectable, it renders at the
  * magnified size rather than being resampled, and it stays sharp.
  *
  * ## How, and what that costs
@@ -38,16 +40,10 @@ export interface LensProps {
  *
  * Under `prefers-reduced-motion` the lens never appears.
  */
-export function Lens({ children, zoom = 2.2, radius = 96, className, onSample }: LensProps) {
+export function Lens({ children, zoom = 2.2, radius = 96, className, style }: LensProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const sourceRef = useRef<HTMLDivElement>(null);
   const discRef = useRef<HTMLDivElement>(null);
-  const onSampleRef = useRef(onSample);
-
-  useEffect(() => {
-    onSampleRef.current = onSample;
-  }, [onSample]);
-
   useEffect(() => {
     const host = hostRef.current;
     const source = sourceRef.current;
@@ -69,7 +65,7 @@ export function Lens({ children, zoom = 2.2, radius = 96, className, onSample }:
       // reachable by tab. The original underneath is the real thing.
       copy.setAttribute('aria-hidden', 'true');
       copy.inert = true;
-      copy.classList.add('lens__copy');
+      copy.classList.add('neva-lens__copy');
       const bounds = host.getBoundingClientRect();
       copy.style.width = `${bounds.width}px`;
       copy.style.height = `${bounds.height}px`;
@@ -80,35 +76,29 @@ export function Lens({ children, zoom = 2.2, radius = 96, className, onSample }:
     const write = (): void => {
       frameHandle = 0;
       if (pending === null || clone === null) return;
-      const started = performance.now();
 
       const bounds = host.getBoundingClientRect();
       const focus = clampFocus(pending, bounds.width, bounds.height, radius);
       const shift = copyTransform(focus, zoom, radius);
 
-      disc.style.setProperty('--lens-x', `${focus.x.toFixed(1)}px`);
-      disc.style.setProperty('--lens-y', `${focus.y.toFixed(1)}px`);
+      disc.style.setProperty('--neva-lens-x', `${focus.x.toFixed(1)}px`);
+      disc.style.setProperty('--neva-lens-y', `${focus.y.toFixed(1)}px`);
       clone.style.setProperty(
         'transform',
         `translate3d(${shift.x.toFixed(2)}px, ${shift.y.toFixed(2)}px, 0) scale(${zoom})`
       );
-
-      onSampleRef.current?.({
-        nodes: disc.querySelectorAll('*').length,
-        frameMs: performance.now() - started,
-      });
     };
 
     const handlePointerMove = (event: PointerEvent): void => {
       const bounds = host.getBoundingClientRect();
       pending = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-      host.classList.add('lens--on');
+      host.classList.add('neva-lens--on');
       // Several pointer events can arrive between two frames and only the last matters.
       if (frameHandle === 0) frameHandle = requestAnimationFrame(write);
     };
 
     const handlePointerLeave = (): void => {
-      host.classList.remove('lens--on');
+      host.classList.remove('neva-lens--on');
     };
 
     build();
@@ -137,13 +127,13 @@ export function Lens({ children, zoom = 2.2, radius = 96, className, onSample }:
   return (
     <div
       ref={hostRef}
-      className={className === undefined ? 'lens' : `lens ${className}`}
-      style={{ '--lens-radius': `${radius}px` } as React.CSSProperties}
+      className={className === undefined ? 'neva-lens' : `neva-lens ${className}`}
+      style={{ ...style, '--neva-lens-radius': `${radius}px` } as React.CSSProperties}
     >
-      <div ref={sourceRef} className="lens__source">
+      <div ref={sourceRef} className="neva-lens__source">
         {children}
       </div>
-      <div ref={discRef} className="lens__disc" aria-hidden="true" />
+      <div ref={discRef} className="neva-lens__disc" aria-hidden="true" />
     </div>
   );
 }

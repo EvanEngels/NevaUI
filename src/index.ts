@@ -23,6 +23,27 @@ export { DEFAULT_WEIGHT as WEIGHT_DEFAULTS } from './weight/light';
 export type { WeightSettings } from './weight/light';
 import './weight/weight.css';
 
+export { Haze } from './haze/Haze';
+export type { HazeProps } from './haze/Haze';
+export { DEFAULT_SMOKE as HAZE_DEFAULTS } from './haze/smoke';
+export type { SmokeSettings as HazeSettings } from './haze/smoke';
+import './haze/haze.css';
+
+export { Threads } from './threads/Threads';
+export type { ThreadsProps, Link, ThreadsSettings } from './threads/Threads';
+export { DEFAULT_THREADS as THREADS_DEFAULTS } from './threads/Threads';
+import './threads/threads.css';
+
+export { Lens } from './lens/Lens';
+export type { LensProps } from './lens/Lens';
+import './lens/lens.css';
+
+export { Sediment } from './sediment/Sediment';
+export type { SedimentProps } from './sediment/Sediment';
+export { DEFAULT_SETTLE as SEDIMENT_DEFAULTS } from './sediment/settle';
+export type { SettleSettings as SedimentSettings } from './sediment/settle';
+import './sediment/sediment.css';
+
 export { DisplacementField } from './displacement-field/DisplacementField';
 export type { DisplacementFieldProps } from './displacement-field/DisplacementField';
 export { DEFAULT_SETTINGS as DISPLACEMENT_DEFAULTS } from './displacement-field/field';

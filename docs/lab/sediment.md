@@ -1,11 +1,11 @@
 # 🧠🧪 Sediment
 
-|             |                                          |
-| ----------- | ---------------------------------------- |
-| **Stage**   | 🧠 Concept, validated directly in 🧪 Lab |
-| **Created** | 2026-09-09                               |
-| **Spark**   | [💡 Sediment](../sparks/sediment.md)     |
-| **Run it**  | `pnpm dev` → Sediment                    |
+|             |                                                                          |
+| ----------- | ------------------------------------------------------------------------ |
+| **Stage**   | 🧪 Lab → ⚡ **promoted**, see [the component](../components/sediment.md) |
+| **Created** | 2026-09-09                                                               |
+| **Spark**   | [💡 Sediment](../sparks/sediment.md)                                     |
+| **Run it**  | `pnpm dev` → Sediment                                                    |
 
 ## Decision: FLIP, and one spring per item
 

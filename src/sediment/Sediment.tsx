@@ -7,11 +7,13 @@ export interface SedimentProps {
   children: ReactNode;
   settings?: Partial<SettleSettings> | undefined;
   className?: string | undefined;
-  onSample?: ((sample: { items: number; frameMs: number; resting: boolean }) => void) | undefined;
+  style?: React.CSSProperties | undefined;
 }
 
 /**
  * A list that settles when it changes.
+ *
+ * ⚡ Experimental. The API will change.
  *
  * An item that arrives falls into place and the items below it absorb the shift, one
  * after another, instead of the whole list sliding to a new arrangement. The difference
@@ -34,11 +36,10 @@ export interface SedimentProps {
  * where the layout put them, immediately. The list is the content; the settle is a way of
  * noticing it changed, and noticing must not depend on it.
  */
-export function Sediment({ children, settings, className, onSample }: SedimentProps) {
+export function Sediment({ children, settings, className, style }: SedimentProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const settleRef = useRef<Settle | null>(null);
   const positionsRef = useRef(new Map<string, number>());
-  const onSampleRef = useRef(onSample);
   const settingsRef = useRef(settings);
 
   const items = Children.toArray(children);
@@ -50,9 +51,8 @@ export function Sediment({ children, settings, className, onSample }: SedimentPr
   const signature = keys.join('|');
 
   useEffect(() => {
-    onSampleRef.current = onSample;
     settingsRef.current = settings;
-  }, [onSample, settings]);
+  }, [settings]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -115,16 +115,8 @@ export function Sediment({ children, settings, className, onSample }: SedimentPr
     const tick = (time: number): void => {
       const elapsed = lastTime === 0 ? 0 : (time - lastTime) / 1000;
       lastTime = time;
-      const started = performance.now();
-
       const moving = settle?.step(elapsed, config) ?? false;
       write();
-
-      onSampleRef.current?.({
-        items: rows.length,
-        frameMs: performance.now() - started,
-        resting: !moving,
-      });
 
       // As in Threads: the frame that starts a loop has no previous frame, so its elapsed
       // time is zero and nothing has moved yet. That is not evidence of being at rest.
@@ -143,7 +135,11 @@ export function Sediment({ children, settings, className, onSample }: SedimentPr
   }, [signature, keys]);
 
   return (
-    <div ref={hostRef} className={className === undefined ? 'sediment' : `sediment ${className}`}>
+    <div
+      ref={hostRef}
+      className={className === undefined ? 'neva-sediment' : `neva-sediment ${className}`}
+      style={style}
+    >
       {items}
     </div>
   );

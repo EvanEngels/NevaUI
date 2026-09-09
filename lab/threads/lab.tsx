@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { Threads, DEFAULT_THREADS, type Link } from './Threads';
+// Imported through the package entry, exactly as a consumer would.
+import { Threads, THREADS_DEFAULTS as DEFAULT_THREADS, type Link } from '../../src';
 import { Slider } from '../playground/Slider';
 
 const NODES = [
@@ -29,25 +30,6 @@ export function ThreadsLab() {
   const settings = useMemo(() => ({ slack, taut, points }), [slack, taut, points]);
 
   const readoutRef = useRef<HTMLSpanElement>(null);
-  const samples = useRef<number[]>([]);
-  const handleSample = useMemo(
-    () =>
-      ({ threads, frameMs, resting }: { threads: number; frameMs: number; resting: boolean }) => {
-        const window = samples.current;
-        window.push(frameMs);
-        // Flushed when the threads settle as well as every thirty frames, or the last
-        // thing the readout ever says is "swinging" — from the frame before it stopped.
-        if (window.length < 30 && !resting) return;
-        const sorted = [...window].sort((a, b) => a - b);
-        window.length = 0;
-        if (readoutRef.current !== null) {
-          readoutRef.current.textContent =
-            `${threads} threads · ${(sorted[15] ?? 0).toFixed(2)} ms median · ` +
-            `${(sorted[29] ?? 0).toFixed(2)} worst · ${resting ? 'at rest' : 'swinging'}`;
-        }
-      },
-    []
-  );
 
   return (
     <>
@@ -56,7 +38,7 @@ export function ThreadsLab() {
         <Slider label="taut" value={taut} min={1} max={1.3} step={0.01} onChange={setTaut} />
         <Slider label="points" value={points} min={4} max={40} step={1} onChange={setPoints} />
         <p className="readout readout--frames">
-          <span ref={readoutRef}>point at a stage</span>
+          <span ref={readoutRef}>one path attribute per thread, and nothing at rest</span>
         </p>
       </div>
 
@@ -67,7 +49,7 @@ export function ThreadsLab() {
         relationship that has to exist without them.
       </p>
 
-      <Threads links={LINKS} settings={settings} className="threads-demo" onSample={handleSample}>
+      <Threads links={LINKS} settings={settings} className="threads-demo">
         {NODES.map((node) => (
           <article key={node.id} data-thread={node.id} className="threads-demo__node">
             <h3>{node.label}</h3>

@@ -1,9 +1,9 @@
-.haze {
+.neva-haze {
   position: relative;
   isolation: isolate;
 }
 
-.haze__smoke {
+.neva-haze__smoke {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -23,7 +23,7 @@
  * still smoke, still legible through, and never moving again.
  */
 @media (prefers-reduced-motion: reduce) {
-  .haze__smoke {
+  .neva-haze__smoke {
     opacity: 0.75;
   }
 }

@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
-import { Lens } from './Lens';
+import { useRef, useState } from 'react';
+// Imported through the package entry, exactly as a consumer would.
+import { Lens } from '../../src';
 import { Slider } from '../playground/Slider';
 
 const ROWS = Array.from({ length: 14 }, (_, index) => ({
@@ -16,18 +17,13 @@ export function LensLab() {
   const [radius, setRadius] = useState(96);
   const readoutRef = useRef<HTMLSpanElement>(null);
 
-  const handleSample = useCallback(({ nodes, frameMs }: { nodes: number; frameMs: number }) => {
-    if (readoutRef.current === null) return;
-    readoutRef.current.textContent = `${nodes} cloned nodes · ${frameMs.toFixed(2)} ms per move`;
-  }, []);
-
   return (
     <>
       <div className="controls">
         <Slider label="zoom" value={zoom} min={1.2} max={5} step={0.1} onChange={setZoom} />
         <Slider label="radius" value={radius} min={40} max={200} step={4} onChange={setRadius} />
         <p className="readout readout--frames">
-          <span ref={readoutRef}>move the pointer over the table</span>
+          <span ref={readoutRef}>one clone, one transform per move</span>
         </p>
       </div>
 
@@ -38,7 +34,7 @@ export function LensLab() {
         through in order to hit.
       </p>
 
-      <Lens zoom={zoom} radius={radius} className="lens-demo" onSample={handleSample}>
+      <Lens zoom={zoom} radius={radius} className="lens-demo">
         <table>
           <thead>
             <tr>

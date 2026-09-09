@@ -1,12 +1,12 @@
 # 🧠🧪 Threads
 
-|             |                                          |
-| ----------- | ---------------------------------------- |
-| **Stage**   | 🧠 Concept, validated directly in 🧪 Lab |
-| **Created** | 2026-09-09                               |
-| **Spark**   | [💡 Threads](../sparks/threads.md)       |
-| **Revives** | [📦 Tether](../archive/tether.md)        |
-| **Run it**  | `pnpm dev` → Threads                     |
+|             |                                                                         |
+| ----------- | ----------------------------------------------------------------------- |
+| **Stage**   | 🧪 Lab → ⚡ **promoted**, see [the component](../components/threads.md) |
+| **Created** | 2026-09-09                                                              |
+| **Spark**   | [💡 Threads](../sparks/threads.md)                                      |
+| **Revives** | [📦 Tether](../archive/tether.md)                                       |
+| **Run it**  | `pnpm dev` → Threads                                                    |
 
 ## It unarchives something
 
