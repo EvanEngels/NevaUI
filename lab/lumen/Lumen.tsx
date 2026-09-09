@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
+import { measureFrame, type FrameSample } from '../playground/frames';
 import './lumen.css';
 
 export interface LumenProps {
   columns: number;
   rows: number;
+  onFrame?: (sample: FrameSample) => void;
 }
 
 /**
@@ -23,15 +25,21 @@ export interface LumenProps {
  * place we control badly to a place the compositor controls well, and it is the reason
  * this is worth trying — not a claim that the effect became free.
  */
-export function Lumen({ columns, rows }: LumenProps) {
+export function Lumen({ columns, rows, onFrame }: LumenProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const onFrameRef = useRef(onFrame);
   const count = columns * rows;
+
+  useEffect(() => {
+    onFrameRef.current = onFrame;
+  }, [onFrame]);
 
   useEffect(() => {
     const host = hostRef.current;
     if (host === null) return;
 
     let frameHandle = 0;
+    let lastTime = 0;
     let pending: { x: number; y: number } | null = null;
 
     /** Each tile learns its own centre once. Nothing rewrites this per frame. */
@@ -43,11 +51,15 @@ export function Lumen({ columns, rows }: LumenProps) {
       }
     };
 
-    const write = (): void => {
+    const write = (time: number): void => {
       frameHandle = 0;
-      if (pending === null) return;
-      host.style.setProperty('--light-x', `${pending.x.toFixed(1)}px`);
-      host.style.setProperty('--light-y', `${pending.y.toFixed(1)}px`);
+      const sample = measureFrame(time, lastTime, () => {
+        if (pending === null) return;
+        host.style.setProperty('--light-x', `${pending.x.toFixed(1)}px`);
+        host.style.setProperty('--light-y', `${pending.y.toFixed(1)}px`);
+      });
+      lastTime = time;
+      onFrameRef.current?.(sample);
     };
 
     const handlePointerMove = (event: PointerEvent): void => {

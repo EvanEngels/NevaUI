@@ -1,5 +1,6 @@
 import { Children, useEffect, useRef, type ReactNode } from 'react';
 import { createField, DEFAULT_SETTINGS, type Field, type FieldSettings, type Point } from './field';
+import { measureFrame, type FrameSample } from '../playground/frames';
 import './field.css';
 
 export interface DisplacementFieldProps {
@@ -12,8 +13,8 @@ export interface DisplacementFieldProps {
    */
   coupling?: boolean;
   settings?: Partial<FieldSettings>;
-  /** Called with the measured frame interval, so the playground reports facts. */
-  onFrame?: (frameMs: number) => void;
+  /** Called with what the frame actually cost, so the playground reports facts. */
+  onFrame?: (sample: FrameSample) => void;
 }
 
 export function DisplacementField({
@@ -74,12 +75,12 @@ export function DisplacementField({
     };
 
     const tick = (time: number): void => {
-      const elapsed = lastTime === 0 ? 0 : (time - lastTime) / 1000;
+      const sample = measureFrame(time, lastTime, (elapsed) => {
+        field?.step(elapsed);
+        write();
+      });
       lastTime = time;
-
-      field?.step(elapsed);
-      write();
-      onFrameRef.current?.(elapsed * 1000);
+      onFrameRef.current?.(sample);
 
       // A field at rest with no pointer is doing nothing visible, so it stops running.
       // Leaving the loop alive would be exactly the hidden background work the project

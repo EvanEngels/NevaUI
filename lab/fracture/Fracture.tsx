@@ -7,6 +7,7 @@ import {
   type FractureSettings,
   type Shard,
 } from './shards';
+import { measureFrame, type FrameSample } from '../playground/frames';
 import './fracture.css';
 
 export interface FractureProps {
@@ -15,6 +16,7 @@ export interface FractureProps {
   force?: number;
   /** Milliseconds the shards stay scattered before finding their way back. */
   holdMs?: number;
+  onFrame?: (sample: FrameSample) => void;
 }
 
 interface ShardMotion {
@@ -34,8 +36,14 @@ const AIR = 0.992;
 const RETURN_STIFFNESS = 130;
 const RETURN_DAMPING = 17;
 
-export function Fracture({ settings, force = 900, holdMs = 900 }: FractureProps) {
+export function Fracture({ settings, force = 900, holdMs = 900, onFrame }: FractureProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const onFrameRef = useRef(onFrame);
+
+  useEffect(() => {
+    onFrameRef.current = onFrame;
+  }, [onFrame]);
+
   const motionsRef = useRef<ShardMotion[]>([]);
   const [shards, setShards] = useState<Shard[] | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -114,31 +122,32 @@ export function Fracture({ settings, force = 900, holdMs = 900 }: FractureProps)
       );
 
     const tick = (time: number): void => {
-      const elapsed = lastTime === 0 ? 0 : (time - lastTime) / 1000;
+      const sample = measureFrame(time, lastTime, (elapsed) => {
+        accumulator += elapsed;
+        let substeps = 0;
+        while (accumulator >= TIMESTEP && substeps < MAX_SUBSTEPS) {
+          integrate();
+          accumulator -= TIMESTEP;
+          substeps += 1;
+        }
+        if (substeps === MAX_SUBSTEPS) accumulator = 0;
+
+        // The hold counts simulated time, not wall time. Frames stop arriving in a
+        // background tab while the clock keeps running, and counting wall time there
+        // would spend the entire scatter on a tab nobody is looking at — the viewer
+        // comes back to a panel that is already reassembling.
+        simulatedMs += substeps * TIMESTEP * 1000;
+        if (simulatedMs > holdMs) returning = true;
+
+        for (const motion of motionsRef.current) {
+          motion.element?.style.setProperty(
+            'transform',
+            `translate3d(${motion.x.toFixed(2)}px, ${motion.y.toFixed(2)}px, 0) rotate(${motion.rotation.toFixed(2)}deg)`
+          );
+        }
+      });
       lastTime = time;
-
-      accumulator += elapsed;
-      let substeps = 0;
-      while (accumulator >= TIMESTEP && substeps < MAX_SUBSTEPS) {
-        integrate();
-        accumulator -= TIMESTEP;
-        substeps += 1;
-      }
-      if (substeps === MAX_SUBSTEPS) accumulator = 0;
-
-      // The hold counts simulated time, not wall time. Frames stop arriving in a
-      // background tab while the clock keeps running, and counting wall time there
-      // would spend the entire scatter on a tab nobody is looking at — the viewer comes
-      // back to a panel that is already reassembling.
-      simulatedMs += substeps * TIMESTEP * 1000;
-      if (simulatedMs > holdMs) returning = true;
-
-      for (const motion of motionsRef.current) {
-        motion.element?.style.setProperty(
-          'transform',
-          `translate3d(${motion.x.toFixed(2)}px, ${motion.y.toFixed(2)}px, 0) rotate(${motion.rotation.toFixed(2)}deg)`
-        );
-      }
+      onFrameRef.current?.(sample);
 
       if (settled()) {
         // The panel is whole again, so the shard elements stop existing rather than

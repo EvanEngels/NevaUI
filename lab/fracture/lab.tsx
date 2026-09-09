@@ -2,12 +2,15 @@ import { useMemo, useState } from 'react';
 import { Fracture } from './Fracture';
 import { DEFAULT_FRACTURE } from './shards';
 import { Slider } from '../playground/Slider';
+import { createFrameRecorder } from '../playground/frames';
+import { FrameReadout } from '../playground/FrameReadout';
 
 export function FractureLab() {
   const [rays, setRays] = useState(DEFAULT_FRACTURE.rays);
   const [rings, setRings] = useState(DEFAULT_FRACTURE.rings);
   const [irregularity, setIrregularity] = useState(DEFAULT_FRACTURE.irregularity);
   const [force, setForce] = useState(900);
+  const [recorder] = useState(createFrameRecorder);
 
   const settings = useMemo(() => ({ rays, rings, irregularity }), [rays, rings, irregularity]);
 
@@ -25,12 +28,10 @@ export function FractureLab() {
           onChange={setIrregularity}
         />
         <Slider label="force" value={force} min={100} max={2600} step={50} onChange={setForce} />
-        <p className="readout">
-          shards <span>{rays * rings}</span>
-        </p>
+        <FrameReadout recorder={recorder} subject={`${rays * rings} shards`} />
       </div>
 
-      <Fracture settings={settings} force={force} />
+      <Fracture settings={settings} force={force} onFrame={recorder.record} />
     </>
   );
 }
