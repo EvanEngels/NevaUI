@@ -19,7 +19,41 @@ body {
 main {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 48px 24px 96px;
+  padding: 28px 24px 96px;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 18px;
+  padding-bottom: 26px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #1d1d1f;
+}
+
+.brand {
+  margin-right: 12px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+nav a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+}
+
+nav a:hover {
+  color: var(--ink);
+}
+
+nav a.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
 }
 
 h1 {
@@ -30,8 +64,8 @@ h1 {
 }
 
 header p {
-  max-width: 60ch;
-  margin: 0 0 32px;
+  max-width: 68ch;
+  margin: 0 0 28px;
   color: var(--muted);
 }
 
@@ -40,9 +74,9 @@ header p {
   flex-wrap: wrap;
   gap: 20px 28px;
   align-items: end;
-  padding: 18px 0 28px;
+  padding: 4px 0 26px;
   border-bottom: 1px solid #1d1d1f;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
 }
 
 .slider {
