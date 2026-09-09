@@ -62,18 +62,15 @@ it:
 
 Read these before using it. Experimental means honest, not finished.
 
-- **It stutters on large surfaces, and the two-writes-per-frame property does not save
-  it.** Reported from real use: raise the face count far enough and the page visibly lags.
-  The constant write count is true and beside the point. Each face repaints twice per
-  frame — a gradient whose position moves, and a blurred shadow whose offset moves — and
-  that is O(n), on the paint side, where the write count never reached. **No face count is
-  recommended, because none has been validated**, and until it is, treat Lumen as suited
-  to a surface you can see at once rather than a dense grid. See
-  [the lab notes](../lab/lumen.md#the-cost-is-paint-and-it-is-real).
-
-  Two levers, both custom properties, both removing one per-frame repaint:
-  `--neva-lumen-shadow-length: 0` freezes the shadow, `--neva-lumen-highlight-shift: 0`
-  freezes the highlight. Either keeps the light and costs less.
+- **`depth="faces"` stutters, and the two-writes-per-frame property does not save it.**
+  Reported from use, then narrowed by the report itself: adding _columns_ stutters while
+  adding _rows_ does not, because rows scroll out of view and the browser never paints
+  them. What costs is **faces visible at once**, not faces in the DOM. No count is
+  recommended, because none has been measured — see
+  [the lab notes](../lab/lumen.md#columns-cost-rows-do-not).
+- The default `depth="flat"` exists because of that. It has no per-face repaint at all, so
+  it has no face-count limit to state, but it is a softer effect: the light pools across
+  the surface instead of each face catching its own.
 
 - **Pointer only.** There is no keyboard or touch equivalent, and there is nothing to
   operate: the light is decoration over content that must already stand on its own.

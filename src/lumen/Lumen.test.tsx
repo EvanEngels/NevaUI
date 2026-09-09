@@ -34,7 +34,7 @@ const faces = (count: number) =>
 describe('Lumen', () => {
   it('answers a pointer move by writing to the surface and to no face', async () => {
     setReducedMotion(false);
-    const { container } = render(<Lumen>{faces(12)}</Lumen>);
+    const { container } = render(<Lumen depth="faces">{faces(12)}</Lumen>);
 
     const host = container.querySelector<HTMLElement>('.neva-lumen');
     if (host === null) throw new Error('missing surface');
@@ -62,6 +62,24 @@ describe('Lumen', () => {
 
     const host = container.querySelector<HTMLElement>('.neva-lumen');
     expect(host?.firstElementChild?.tagName).toBe('BUTTON');
+  });
+
+  it('never touches a face in the default flat mode', async () => {
+    setReducedMotion(false);
+    const { container } = render(<Lumen>{faces(12)}</Lumen>);
+
+    const host = container.querySelector<HTMLElement>('.neva-lumen');
+    if (host === null) throw new Error('missing surface');
+    const children = Array.from(host.children) as HTMLElement[];
+
+    host.dispatchEvent(new PointerEvent('pointermove', { clientX: 40, clientY: 25 }));
+    await nextFrame();
+    await nextFrame();
+
+    // Not merely "the same as before": in flat mode a face is never written to at all,
+    // not even once at mount, because the light does not need to know where faces are.
+    expect(children.every((face) => face.getAttribute('style') === null)).toBe(true);
+    expect(host.style.getPropertyValue('--neva-light-x')).not.toBe('');
   });
 
   it('writes nothing when the viewer asked for reduced motion', async () => {

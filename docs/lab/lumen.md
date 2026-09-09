@@ -43,7 +43,7 @@ tiles is not a component.
 
 Paint remains unmeasured and is documented as a limitation rather than resolved.
 
-## The cost is paint, and it is real
+## Columns cost, rows do not
 
 Reported from real use, on a real screen, which is the one place none of this could be
 measured from: **raise the columns and rows far enough and it lags badly.**
@@ -64,15 +64,42 @@ Where it goes, precisely. When the light moves, each face redraws twice:
 Neither is touched by writing two properties instead of n. The write count was never the
 bottleneck; it was just the part that was easy to measure and easy to be proud of.
 
-The panel now carries a delivery monitor and one slider per repaint, so setting either to
-zero freezes that value and removes exactly one of the two. That answers the next question
-— which of the two is expensive — by measurement rather than by argument, and it needs a
-person with the tab in front of them.
+### The report was sharper than the theory
 
-**If the shadow turns out to be the cost**, the interesting version of this component
-becomes one where the highlight rides a single composited overlay and moves by transform,
-costing no repaint at all, and the per-face depth becomes an opt-in for surfaces small
-enough to afford it.
+The follow-up narrowed it in a way the theory had not: **adding columns stutters, adding
+rows does not.** Forty rows at twelve columns is fine; twelve rows at thirty columns is
+not, even though the second has fewer faces.
+
+That looks contradictory for exactly as long as it takes to remember that a browser does
+not paint what is off screen. Extra rows fall below the fold and cost nothing. Extra
+columns stay in view. **The number that matters is faces visible at once**, and every
+count written down before this — including the ones in these notes — measured the wrong
+thing.
+
+### A switch that switched nothing off
+
+The same report said the stutter persisted with the shadow turned off, which would have
+cleared the shadow of blame. It did not, because the switch was broken: the outer shadow
+was governed by `--neva-lumen-shadow-length`, and the _inset_ one had a multiplier
+hardcoded next to it. Setting the length to zero left the inset shadow changing every
+frame, so the face went on repainting and the test proved nothing.
+
+A switch that does not switch anything off is worse than no switch, because it produces
+confident wrong conclusions. Both shadows are governed by the one property now.
+
+### The fix
+
+The highlight no longer has to live on the face. `depth="flat"`, now the default, puts the
+light on a single pseudo-element carrying a fixed gradient and moves it with `transform`.
+A composited transform is not a repaint: the light costs the same over ten faces or a
+thousand, and no face is written to or redrawn at all.
+
+`depth="faces"` keeps the original per-face highlight and shadow for surfaces small enough
+to afford it. The mode is the cost, stated as a prop rather than buried in a note.
+
+It is a softer effect — one pool of light across the surface instead of each face catching
+its own — and that is the trade. The cheapest technology that produces the experience won,
+and it turned out not to be the clever one.
 
 ## Still open
 
