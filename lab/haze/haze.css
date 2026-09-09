@@ -1,0 +1,27 @@
+.haze {
+  position: relative;
+  isolation: isolate;
+}
+
+.haze__fog {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /*
+   * The fog is looked through, never clicked. Everything underneath keeps its own pointer
+   * behaviour, which is what makes this a decoration rather than a lid.
+   */
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/*
+ * Reduced motion leaves the fog exactly where it is: still there, still legible through,
+ * and no longer moving. There is nothing here that has to move for the element to work.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .haze__fog {
+    opacity: 0.6;
+  }
+}

@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DisplacementFieldLab } from './displacement-field/lab';
 import { PourLab } from './pour/lab';
+import { HazeLab } from './haze/lab';
 import { WeightLab } from './weight/lab';
 import { LumenLab } from './lumen/lab';
 import { FractureLab } from './fracture/lab';
@@ -15,6 +16,13 @@ interface Experiment {
 }
 
 const EXPERIMENTS: Experiment[] = [
+  {
+    id: 'haze',
+    title: 'Haze',
+    summary:
+      'Smoke over a card, which the pointer wipes away and which closes back over. It never hides anything: the text stays readable through it and the button stays pressable.',
+    render: () => <HazeLab />,
+  },
   {
     id: 'pour',
     title: 'Pour',
