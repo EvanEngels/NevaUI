@@ -1,12 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
 import { Pour } from './Pour';
-import { MATERIALS } from './grains';
+import type { MaterialName } from './materials';
 import { Slider, Toggle } from '../playground/Slider';
 
-const MATERIAL_NAMES = Object.keys(MATERIALS) as (keyof typeof MATERIALS)[];
+const MATERIAL_NAMES: MaterialName[] = ['sand', 'water', 'lava'];
 
 export function PourLab() {
-  const [material, setMaterial] = useState<keyof typeof MATERIALS>('sand');
+  const [material, setMaterial] = useState<MaterialName>('sand');
   const [cellSize, setCellSize] = useState(5);
   const [upside, setUpside] = useState(false);
   const [pouring, setPouring] = useState(true);

@@ -1,18 +1,12 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import {
-  createGrid,
-  FILLED,
-  MATERIALS,
-  type Box,
-  type Grid,
-  type MaterialSettings,
-} from './grains';
+import { createTerrain, type Box, type Terrain } from './terrain';
+import { createSimulation, type MaterialName, type Simulation } from './materials';
 import './pour.css';
 
 export interface PourProps {
   /** The page the material falls onto. Every element inside is terrain. */
   children: ReactNode;
-  material?: keyof typeof MATERIALS;
+  material?: MaterialName;
   /** Size of one cell in pixels. Smaller is finer and costs more. */
   cellSize?: number;
   /** 1 pours downward, -1 turns the glass over. */
@@ -63,23 +57,19 @@ export function Pour({
     const context = canvas.getContext('2d', { alpha: true });
     if (context === null) return;
 
-    let grid: Grid | null = null;
+    let terrain: Terrain | null = null;
+    let simulation: Simulation | null = null;
     let image: ImageData | null = null;
     let frameHandle = 0;
     let lastTime = 0;
     let currentCellSize = stateRef.current.cellSize;
-
-    const random = Math.random;
+    let currentMaterial = stateRef.current.material;
 
     const measure = (): void => {
       const bounds = host.getBoundingClientRect();
       currentCellSize = stateRef.current.cellSize;
       const columns = Math.max(1, Math.floor(bounds.width / currentCellSize));
       const rows = Math.max(1, Math.floor(bounds.height / currentCellSize));
-
-      const previous = grid;
-      grid = createGrid(columns, rows);
-      grid.gravity = stateRef.current.gravity;
 
       // The canvas is one pixel per cell and stretched by CSS with smoothing off, so the
       // browser scales it for free instead of JavaScript drawing thousands of rectangles.
@@ -97,30 +87,31 @@ export function Pour({
           height: rect.height,
         });
       }
-      grid.setTerrain(boxes, currentCellSize);
 
-      // A resize is a discontinuity; carrying a pile across a new grid would misplace it.
-      if (previous !== null) previous.clear();
+      // A resize, or a change of material, is a discontinuity. Carrying a pile across
+      // either would misplace it or reinterpret it as something it is not.
+      terrain = createTerrain(columns, rows, boxes, currentCellSize);
+      currentMaterial = stateRef.current.material;
+      simulation = createSimulation(currentMaterial, terrain);
+      simulation.setGravity(stateRef.current.gravity);
     };
 
     const draw = (): void => {
-      if (grid === null || image === null) return;
-      const settings: MaterialSettings = MATERIALS[stateRef.current.material];
-      const [red, green, blue] = settings.colour;
+      if (simulation === null || terrain === null || image === null) return;
       const data = image.data;
+      const total = terrain.columns * terrain.rows;
 
-      for (let index = 0; index < grid.cells.length; index += 1) {
+      for (let index = 0; index < total; index += 1) {
         const pixel = index * 4;
-        if (grid.cells[index] !== FILLED) {
+        const colour = simulation.colourAt(index);
+        if (colour === null) {
           data[pixel + 3] = 0;
           continue;
         }
-        // Per-cell jitter, so a pile reads as grains rather than as a flat wash.
-        const jitter = (((grid.shade[index] ?? 0) / 255) * 2 - 1) * settings.variation;
-        data[pixel] = clampByte(red * (1 + jitter));
-        data[pixel + 1] = clampByte(green * (1 + jitter));
-        data[pixel + 2] = clampByte(blue * (1 + jitter));
-        data[pixel + 3] = 255;
+        data[pixel] = colour[0];
+        data[pixel + 1] = colour[1];
+        data[pixel + 2] = colour[2];
+        data[pixel + 3] = colour[3];
       }
 
       context.putImageData(image, 0, 0);
@@ -130,12 +121,12 @@ export function Pour({
       const elapsed = lastTime === 0 ? 0 : (time - lastTime) / 1000;
       lastTime = time;
 
-      const settings = MATERIALS[stateRef.current.material];
+      if (stateRef.current.material !== currentMaterial) measure();
+
       const stepStart = performance.now();
-      if (grid !== null) {
-        grid.gravity = stateRef.current.gravity;
-        if (stateRef.current.pouring) grid.pour(elapsed, settings, random);
-        grid.step(settings, random);
+      if (simulation !== null) {
+        simulation.setGravity(stateRef.current.gravity);
+        simulation.step(elapsed, stateRef.current.pouring);
       }
       const stepMs = performance.now() - stepStart;
 
@@ -143,7 +134,7 @@ export function Pour({
       draw();
       const drawMs = performance.now() - drawStart;
 
-      onSampleRef.current?.({ filled: grid?.filledCount() ?? 0, stepMs, drawMs });
+      onSampleRef.current?.({ filled: simulation?.population() ?? 0, stepMs, drawMs });
       frameHandle = requestAnimationFrame(tick);
     };
 
@@ -175,8 +166,4 @@ export function Pour({
       <canvas ref={canvasRef} className="pour__canvas" aria-hidden="true" />
     </div>
   );
-}
-
-function clampByte(value: number): number {
-  return Math.max(0, Math.min(255, Math.round(value)));
 }
