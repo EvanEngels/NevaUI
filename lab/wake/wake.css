@@ -1,0 +1,29 @@
+.wake {
+  position: relative;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.wake__body,
+.wake__ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* Both composited, both written once per frame. */
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.wake__ghost {
+  opacity: 0;
+}
+
+/*
+ * No ghosts and no loop for a viewer who asked for less motion: the component renders
+ * none at all rather than rendering them invisible.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .wake__ghost {
+    display: none;
+  }
+}

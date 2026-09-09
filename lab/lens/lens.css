@@ -1,0 +1,49 @@
+.lens {
+  position: relative;
+  --lens-x: 50%;
+  --lens-y: 50%;
+}
+
+.lens__disc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--lens-radius) * 2);
+  height: calc(var(--lens-radius) * 2);
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0;
+  /*
+   * The disc shows something you cannot click: the real content is underneath at its real
+   * size, and this must never intercept a pointer meant for it.
+   */
+  pointer-events: none;
+  transform: translate3d(
+    calc(var(--lens-x) - var(--lens-radius)),
+    calc(var(--lens-y) - var(--lens-radius)),
+    0
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+  transition: opacity 160ms ease;
+}
+
+.lens--on .lens__disc {
+  opacity: 1;
+}
+
+.lens__copy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* The whole placement is one transform, written by the component each frame. */
+  transform-origin: 0 0;
+}
+
+/* No lens at all for a viewer who asked for less motion: it exists only while moving. */
+@media (prefers-reduced-motion: reduce) {
+  .lens__disc {
+    display: none;
+  }
+}

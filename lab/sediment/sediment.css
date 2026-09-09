@@ -1,0 +1,14 @@
+.sediment > * {
+  /* transform only: the layout is the browser's, and this borrows the difference. */
+  transform: translate3d(0, var(--dy, 0), 0);
+}
+
+/*
+ * Equivalent access, not identical interaction: items appear where the layout put them,
+ * immediately. The component starts no loop and offsets nothing in this case.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sediment > * {
+    transform: none;
+  }
+}

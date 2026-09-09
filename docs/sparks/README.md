@@ -17,13 +17,5 @@ anywhere — a Spark exists so an idea is written down instead of remembered wro
 
 ## Noted, not yet written up
 
-Ideas with a use, waiting for someone to want them enough. Kept here so they are not
-proposed again from scratch.
-
-- **Sediment** — a list that settles: arriving items fall and pack against those below,
-  and the pile collapses when one leaves. For lists that change while you are watching
-  them. FLIP and a spring, transform only.
-- **Lens** — a disc you drag over dense content that magnifies the real DOM beneath it,
-  not a picture of it. For tables, maps, code.
-- **Wake** — fast movement leaves a trail of its own previous positions, which fades.
-  Makes speed legible rather than decorative.
+Nothing at the moment. Every idea proposed so far has been written up, built, published or
+archived — which is the state this list exists to make visible, in both directions.
