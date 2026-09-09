@@ -1,11 +1,14 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DisplacementField } from './DisplacementField';
 import { DEFAULT_SETTINGS } from './field';
 import { Slider, Toggle } from '../playground/Slider';
+import { createFrameRecorder } from '../playground/frames';
+import { FrameReadout } from '../playground/FrameReadout';
 
 const COLUMNS = 16;
 
 export function DisplacementFieldLab() {
+  const [recorder] = useState(createFrameRecorder);
   const [coupling, setCoupling] = useState(true);
   const [rows, setRows] = useState(10);
   const [displacement, setDisplacement] = useState(DEFAULT_SETTINGS.displacement);
@@ -28,37 +31,8 @@ export function DisplacementFieldLab() {
   const count = COLUMNS * rows;
   const cells = useMemo(() => Array.from({ length: count }, (_, index) => index), [count]);
 
-  // Frame timing is read from the DOM directly: routing it through React state would
-  // re-render the whole field every frame, which is the failure this project exists to avoid.
-  const readoutRef = useRef<HTMLSpanElement>(null);
-  const samples = useRef<number[]>([]);
-
-  const handleFrame = useCallback((frameMs: number) => {
-    if (frameMs <= 0) return;
-    const window = samples.current;
-    window.push(frameMs);
-    if (window.length < 30) return;
-
-    const sorted = [...window].sort((a, b) => a - b);
-    const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
-    const worst = sorted[sorted.length - 1] ?? 0;
-    window.length = 0;
-
-    if (readoutRef.current !== null) {
-      readoutRef.current.textContent = `${median.toFixed(1)} ms median · ${worst.toFixed(1)} ms worst`;
-    }
-  }, []);
-
   return (
     <>
-      <header>
-        <h1>Displacement Field</h1>
-        <p>
-          🧪 Lab prototype. Move the pointer across the field. Turn coupling off to compare against
-          independent falloff — the cheap model this experiment has to beat.
-        </p>
-      </header>
-
       <div className="controls">
         <Toggle
           label={`Neighbour coupling ${coupling ? 'on' : 'off (control)'}`}
@@ -95,16 +69,14 @@ export function DisplacementFieldLab() {
           onChange={setRatio}
         />
 
-        <p className="readout">
-          frame <span ref={readoutRef}>measuring…</span>
-        </p>
+        <FrameReadout recorder={recorder} subject={`${count} elements`} />
       </div>
 
       <DisplacementField
         columns={COLUMNS}
         coupling={coupling}
         settings={settings}
-        onFrame={handleFrame}
+        onFrame={recorder.record}
       >
         {cells.map((index) => (
           <span className="dot" key={index} />
