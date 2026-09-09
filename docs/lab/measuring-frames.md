@@ -69,6 +69,16 @@ paint, and that half remains unmeasured here — it needs the browser's own prof
 should be recorded as a limitation of any component that relies on the trade, not guessed
 at.
 
+## What is left of it
+
+Every experiment that owned an animation loop has been published, and a published
+component does not carry a measurement hook — so the half of this harness that timed work
+inside a callback has no caller and has been removed rather than left to rot. The recorder
+still takes that number, and `git log` has the helper that produced it. The next prototype
+with a loop of its own can bring it back in a few lines.
+
+What remains in use is the delivery monitor, below.
+
 ## Measuring a component that owns no loop
 
 Script cost is the wrong instrument for a component whose cost is somewhere else. Lumen

@@ -20,7 +20,15 @@
 export interface FrameSample {
   /** Time since the previous frame, in milliseconds. */
   intervalMs: number;
-  /** Time spent inside the animation callback, in milliseconds. */
+  /**
+   * Time spent inside the animation callback, in milliseconds.
+   *
+   * Nothing reports this at the moment: every component that owned a loop has been
+   * published, and a published component does not carry a measurement hook. The field
+   * stays because it is half of what this instrument is for, and the next prototype with
+   * a loop of its own will want it — `git log` has the helper that wrapped a callback to
+   * produce it.
+   */
   scriptMs: number;
 }
 
@@ -118,21 +126,4 @@ export function quantile(sorted: readonly number[], fraction: number): number {
   const rank = Math.ceil(fraction * sorted.length) - 1;
   const index = Math.min(sorted.length - 1, Math.max(0, rank));
   return sorted[index] ?? 0;
-}
-
-/**
- * Wraps a frame callback so it reports what it cost.
- *
- * The measurement lives here rather than in each experiment, so no experiment can
- * accidentally measure something slightly different from the others.
- */
-export function measureFrame(
-  time: number,
-  previousTime: number,
-  work: (elapsedSeconds: number) => void
-): FrameSample {
-  const intervalMs = previousTime === 0 ? 0 : time - previousTime;
-  const started = performance.now();
-  work(intervalMs / 1000);
-  return { intervalMs, scriptMs: performance.now() - started };
 }

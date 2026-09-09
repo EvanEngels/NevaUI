@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createFrameRecorder, measureFrame, quantile } from './frames';
+import { createFrameRecorder, quantile } from './frames';
 
 /**
  * A measuring instrument that is wrong is worse than none, because its numbers get
@@ -69,18 +69,6 @@ describe('frame recorder', () => {
     expect(stats.scriptMedianMs).toBe(1);
     expect(stats.scriptP95Ms).toBe(40);
     expect(stats.scriptMaxMs).toBe(40);
-  });
-
-  it('measures how long the work took, not how long the frame was', () => {
-    const sample = measureFrame(1016, 1000, () => {
-      const until = performance.now() + 5;
-      while (performance.now() < until) {
-        /* burn a known amount of time */
-      }
-    });
-
-    expect(sample.intervalMs).toBe(16);
-    expect(sample.scriptMs).toBeGreaterThanOrEqual(4);
   });
 
   it('takes the nearest rank rather than interpolating', () => {
