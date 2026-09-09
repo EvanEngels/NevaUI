@@ -1,7 +1,6 @@
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DisplacementFieldLab } from './displacement-field/lab';
-import { TetherLab } from './tether/lab';
 import { WeightLab } from './weight/lab';
 import { LumenLab } from './lumen/lab';
 import { FractureLab } from './fracture/lab';
@@ -21,13 +20,6 @@ const EXPERIMENTS: Experiment[] = [
     summary:
       'A grid pushed aside by the pointer, where displacing one element compresses its neighbours. Turn coupling off to compare against independent falloff.',
     render: () => <DisplacementFieldLab />,
-  },
-  {
-    id: 'tether',
-    title: 'Tether',
-    summary:
-      'An inextensible line with mass. Drag the handle: the rope transmits the motion, the weight lags, and the whole thing swings itself back to rest.',
-    render: () => <TetherLab />,
   },
   {
     id: 'weight',
