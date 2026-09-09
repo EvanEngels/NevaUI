@@ -63,6 +63,23 @@ describe('fracture geometry', () => {
     }
   });
 
+  it('produces far fewer shards than the mesh asks for', () => {
+    // rays x rings is the polar mesh, not the result: the cells that fall outside the
+    // panel are clipped away. The playground printed the mesh size as the shard count and
+    // was wrong every time, so the relationship is pinned here.
+    const asked = DEFAULT_FRACTURE.rays * DEFAULT_FRACTURE.rings;
+    const shards = fracture(
+      WIDTH,
+      HEIGHT,
+      { x: WIDTH / 2, y: HEIGHT / 2 },
+      DEFAULT_FRACTURE,
+      seededRandom(11)
+    );
+
+    expect(shards.length).toBeLessThan(asked);
+    expect(shards.length).toBeGreaterThan(asked * 0.2);
+  });
+
   it('leaves a polygon alone when it is already inside the boundary', () => {
     const square = [
       { x: 10, y: 10 },

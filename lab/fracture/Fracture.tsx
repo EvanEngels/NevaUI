@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   clipPathOf,
   DEFAULT_FRACTURE,
@@ -11,6 +11,11 @@ import { measureFrame, type FrameSample } from '../playground/frames';
 import './fracture.css';
 
 export interface FractureProps {
+  /**
+   * What breaks. Every shard shows the same content, clipped to its own polygon, so the
+   * break cuts through the real thing rather than through a picture of it.
+   */
+  children: ReactNode;
   settings?: Partial<FractureSettings>;
   /** How hard the shards leave, in pixels per second at the impact point. */
   force?: number;
@@ -36,7 +41,13 @@ const AIR = 0.992;
 const RETURN_STIFFNESS = 130;
 const RETURN_DAMPING = 17;
 
-export function Fracture({ settings, force = 900, holdMs = 900, onFrame }: FractureProps) {
+export function Fracture({
+  children,
+  settings,
+  force = 900,
+  holdMs = 900,
+  onFrame,
+}: FractureProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const onFrameRef = useRef(onFrame);
 
@@ -58,13 +69,19 @@ export function Fracture({ settings, force = 900, holdMs = 900, onFrame }: Fract
       const config = { ...DEFAULT_FRACTURE, ...settings };
       const random = seededRandom(Math.floor(event.clientX * 31 + event.clientY * 17) || 1);
 
+      // Reduced motion keeps the meaning and drops the flight. The panel still breaks —
+      // the crack is the content of the interaction — but the pieces part by a few pixels
+      // and come straight back instead of being thrown across the panel.
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+      const throwForce = reduced ? force * 0.05 : force;
+
       const pieces = fracture(bounds.width, bounds.height, impact, config, random);
 
       // Closer to the impact means faster: this is the only place the break carries any
       // sense of energy, and a uniform speed reads as a slide, not a shatter.
       motionsRef.current = pieces.map((shard) => {
         const falloff = 1 / (1 + shard.distance / 180);
-        const speed = force * falloff * (0.7 + random() * 0.6);
+        const speed = throwForce * falloff * (0.7 + random() * 0.6);
         return {
           element: null,
           x: 0,
@@ -172,18 +189,28 @@ export function Fracture({ settings, force = 900, holdMs = 900, onFrame }: Fract
       className={shards === null ? 'fracture' : 'fracture fracture--broken'}
       onPointerDown={handlePointerDown}
     >
-      <div className="fracture__art" />
+      {/*
+        The intact face. While broken it is invisible but still present, because the
+        shards are copies and a screen reader should be offered the content once, not
+        fifty-two times.
+      */}
+      <div className="fracture__face">{children}</div>
 
       {shards?.map((shard, index) => (
         <div
           key={index}
           className="fracture__shard"
+          aria-hidden="true"
           style={{ clipPath: clipPathOf(shard, size.width, size.height) }}
           ref={(element) => {
             const motion = motionsRef.current[index];
             if (motion !== undefined) motion.element = element;
           }}
-        />
+        >
+          <div className="fracture__face" style={{ width: size.width, height: size.height }}>
+            {children}
+          </div>
+        </div>
       ))}
 
       <p className="fracture__hint">{shards === null ? 'strike the panel' : ''}</p>
