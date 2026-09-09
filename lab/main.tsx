@@ -40,7 +40,7 @@ const EXPERIMENTS: Experiment[] = [
     id: 'lumen',
     title: 'Lumen',
     summary:
-      'One light source, one write per frame for the whole surface. Every tile derives its own highlight and shadow in CSS.',
+      'One light over a whole surface. Flat moves a single composited layer and repaints nothing; faces gives every face its own highlight and shadow, and repaints all of them every frame.',
     render: () => <LumenLab />,
   },
   {

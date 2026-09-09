@@ -14,6 +14,17 @@ export interface LumenProps {
    * drives it.
    */
   style?: CSSProperties;
+  /**
+   * How the light reaches the faces.
+   *
+   * `'flat'` (the default) moves one composited layer over the surface. Nothing repaints
+   * as the light moves, whatever is on screen.
+   *
+   * `'faces'` gives every face its own highlight and its own shadow, thrown away from the
+   * light. It is the better-looking one and it **repaints every visible face on every
+   * frame** — see the cost note on the component.
+   */
+  depth?: 'flat' | 'faces';
 }
 
 /**
@@ -33,10 +44,17 @@ export interface LumenProps {
  *
  * ## What this costs
  *
- * Script is O(1) in the number of faces. **Painting is not**: it stays proportional to
- * the lit area, and it has not been measured — see docs/lab/measuring-frames.md. The
- * trade moves work from the main thread to the compositor. It does not remove it, and no
- * element count is recommended here because none has been validated.
+ * Two writes per frame was always true and never the point. What matters is what those
+ * two writes make the browser redraw.
+ *
+ * `depth="flat"`, the default, moves a single composited layer. Nothing repaints as the
+ * light moves — the cost does not grow with the surface at all.
+ *
+ * `depth="faces"` derives a highlight and a shadow per face from the same two properties.
+ * It looks better and it repaints **every visible face on every frame**, so its cost grows
+ * with what is on screen. Reported from use: it stutters well before the face count sounds
+ * large. Rows scrolled out of view are free — they are never painted — so the number that
+ * matters is faces visible at once, not faces total.
  *
  * ## Accessibility
  *
@@ -46,7 +64,7 @@ export interface LumenProps {
  * the surface, so the depth remains and the movement does not. Nothing here is focusable,
  * because there is nothing here to operate.
  */
-export function Lumen({ children, className, style }: LumenProps) {
+export function Lumen({ children, className, style, depth = 'flat' }: LumenProps) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -67,6 +85,10 @@ export function Lumen({ children, className, style }: LumenProps) {
      * on every element, which is the cost this component exists to avoid.
      */
     const measure = (): void => {
+      // Only the per-face mode needs to know where each face is. In flat mode the light
+      // is one layer that knows its own position, so no face is written to at all.
+      if (depth !== 'faces') return;
+
       for (const face of host.children) {
         if (!(face instanceof HTMLElement)) continue;
         face.style.setProperty(
@@ -110,7 +132,9 @@ export function Lumen({ children, className, style }: LumenProps) {
 
     const observer = new ResizeObserver(measure);
     observer.observe(host);
-    for (const face of host.children) observer.observe(face);
+    if (depth === 'faces') {
+      for (const face of host.children) observer.observe(face);
+    }
 
     if (!reducedMotion) {
       host.addEventListener('pointermove', handlePointerMove);
@@ -126,13 +150,14 @@ export function Lumen({ children, className, style }: LumenProps) {
       if (frameHandle !== 0) cancelAnimationFrame(frameHandle);
     };
     // The children are read from the DOM, so a changing child list has to re-measure.
-  }, [children]);
+  }, [children, depth]);
 
   return (
     <div
       ref={hostRef}
       className={className === undefined ? 'neva-lumen' : `neva-lumen ${className}`}
       style={style}
+      data-neva-depth={depth}
     >
       {children}
     </div>
