@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { DisplacementFieldLab } from './displacement-field/lab';
 import { PourLab } from './pour/lab';
 import { HazeLab } from './haze/lab';
+import { ThreadsLab } from './threads/lab';
 import { WeightLab } from './weight/lab';
 import { LumenLab } from './lumen/lab';
 import { FractureLab } from './fracture/lab';
@@ -16,6 +17,13 @@ interface Experiment {
 }
 
 const EXPERIMENTS: Experiment[] = [
+  {
+    id: 'threads',
+    title: 'Threads',
+    summary:
+      'Relationships drawn as physical threads that hang between the elements they join and pull taut when you point at one end. The rope solver is Tether, brought back from the archive.',
+    render: () => <ThreadsLab />,
+  },
   {
     id: 'haze',
     title: 'Haze',

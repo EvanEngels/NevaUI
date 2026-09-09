@@ -23,8 +23,6 @@ proposed again from scratch.
 - **Sediment** — a list that settles: arriving items fall and pack against those below,
   and the pile collapses when one leaves. For lists that change while you are watching
   them. FLIP and a spring, transform only.
-- **Threads** — lines that connect related elements across a layout and tighten when one
-  is hovered. Would give the archived [Tether](../archive/tether.md) rope a purpose.
 - **Lens** — a disc you drag over dense content that magnifies the real DOM beneath it,
   not a picture of it. For tables, maps, code.
 - **Wake** — fast movement leaves a trail of its own previous positions, which fades.
