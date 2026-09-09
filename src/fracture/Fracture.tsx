@@ -7,8 +7,6 @@ import {
   type FractureSettings,
   type Shard,
 } from './shards';
-import { measureFrame, type FrameSample } from '../playground/frames';
-import './fracture.css';
 
 export interface FractureProps {
   /**
@@ -16,12 +14,12 @@ export interface FractureProps {
    * break cuts through the real thing rather than through a picture of it.
    */
   children: ReactNode;
-  settings?: Partial<FractureSettings>;
+  settings?: Partial<FractureSettings> | undefined;
   /** How hard the shards leave, in pixels per second at the impact point. */
-  force?: number;
+  force?: number | undefined;
   /** Milliseconds the shards stay scattered before finding their way back. */
-  holdMs?: number;
-  onFrame?: (sample: FrameSample) => void;
+  holdMs?: number | undefined;
+  className?: string | undefined;
 }
 
 interface ShardMotion {
@@ -41,19 +39,56 @@ const AIR = 0.992;
 const RETURN_STIFFNESS = 130;
 const RETURN_DAMPING = 17;
 
+/**
+ * A panel that breaks where you strike it.
+ *
+ * ⚡ Experimental. The API will change.
+ *
+ * The break is computed from the point of impact, so hitting a corner and hitting the
+ * middle produce different geometry. Rays and rings form a polar mesh clipped to the
+ * panel; each shard is a DOM element with a clip-path and a transform. No canvas, no
+ * WebGL.
+ *
+ * Every shard holds a copy of the children, so the break cuts through the real content
+ * rather than a picture of it — text included, and the type stays sharp on both sides of
+ * a cut because a shard is transformed rather than re-rendered.
+ *
+ * **What breaks is `children`, not the panel.** The panel is the frame that holds the
+ * pieces and keeps them from flying over the page; a background painted on it stays whole
+ * while the contents shatter. Put the surface you want broken inside.
+ *
+ * ## What this costs
+ *
+ * The per-frame cost is trivial and flat. What grows is the DOM: **nodes are shards times
+ * the size of your content**, built in one burst on impact. A heading and a paragraph give
+ * 630 nodes and a 1.6 ms break at 125 shards; a card with an image and six children would
+ * give several thousand, and the break would not stay at 1.6 ms.
+ *
+ * The limit is the complexity of what you put inside, not the shard count.
+ *
+ * ## Accessibility
+ *
+ * **This is decoration, and it must never be the only way to do anything.** Striking a
+ * panel is a pointer gesture with no keyboard equivalent, and the component deliberately
+ * does not invent one: a decorative shatter is not a control, and giving it a tab stop and
+ * a button role would announce an action that does nothing for anyone who takes it.
+ *
+ * The content underneath stays reachable throughout. The shards are `aria-hidden` copies
+ * and the intact face stays in the accessibility tree, so the passage is offered once
+ * rather than a hundred times.
+ *
+ * Under `prefers-reduced-motion` the panel still breaks — the crack is the content of the
+ * interaction — but the pieces part by a few pixels and come straight back instead of
+ * being thrown across the panel.
+ */
 export function Fracture({
   children,
   settings,
   force = 900,
   holdMs = 900,
-  onFrame,
+  className,
 }: FractureProps) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const onFrameRef = useRef(onFrame);
-
-  useEffect(() => {
-    onFrameRef.current = onFrame;
-  }, [onFrame]);
 
   const motionsRef = useRef<ShardMotion[]>([]);
   const [shards, setShards] = useState<Shard[] | null>(null);
@@ -139,7 +174,10 @@ export function Fracture({
       );
 
     const tick = (time: number): void => {
-      const sample = measureFrame(time, lastTime, (elapsed) => {
+      const elapsed = lastTime === 0 ? 0 : (time - lastTime) / 1000;
+      lastTime = time;
+
+      {
         accumulator += elapsed;
         let substeps = 0;
         while (accumulator >= TIMESTEP && substeps < MAX_SUBSTEPS) {
@@ -162,9 +200,7 @@ export function Fracture({
             `translate3d(${motion.x.toFixed(2)}px, ${motion.y.toFixed(2)}px, 0) rotate(${motion.rotation.toFixed(2)}deg)`
           );
         }
-      });
-      lastTime = time;
-      onFrameRef.current?.(sample);
+      }
 
       if (settled()) {
         // The panel is whole again, so the shard elements stop existing rather than
@@ -186,7 +222,9 @@ export function Fracture({
   return (
     <div
       ref={hostRef}
-      className={shards === null ? 'fracture' : 'fracture fracture--broken'}
+      className={['neva-fracture', shards === null ? '' : 'neva-fracture--broken', className ?? '']
+        .filter(Boolean)
+        .join(' ')}
       onPointerDown={handlePointerDown}
     >
       {/*
@@ -194,12 +232,12 @@ export function Fracture({
         shards are copies and a screen reader should be offered the content once, not
         fifty-two times.
       */}
-      <div className="fracture__face">{children}</div>
+      <div className="neva-fracture__face">{children}</div>
 
       {shards?.map((shard, index) => (
         <div
           key={index}
-          className="fracture__shard"
+          className="neva-fracture__shard"
           aria-hidden="true"
           style={{ clipPath: clipPathOf(shard, size.width, size.height) }}
           ref={(element) => {
@@ -207,13 +245,11 @@ export function Fracture({
             if (motion !== undefined) motion.element = element;
           }}
         >
-          <div className="fracture__face" style={{ width: size.width, height: size.height }}>
+          <div className="neva-fracture__face" style={{ width: size.width, height: size.height }}>
             {children}
           </div>
         </div>
       ))}
-
-      <p className="fracture__hint">{shards === null ? 'strike the panel' : ''}</p>
     </div>
   );
 }

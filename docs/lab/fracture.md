@@ -119,6 +119,18 @@ frames stop arriving, so the reassembly waits for the viewer to come back. That 
 arguably correct — they see the break they triggered — but it is not a decision anyone
 made.
 
-## Still open
+## Promoted to ⚡ Experimental
 
-- Striking is a pointer event. No keyboard equivalent exists.
+On 2026-09-09. The keyboard question was the last one open, and it was answered by
+deciding rather than by coding: **striking a panel is a pointer gesture with no keyboard
+equivalent, and the component does not invent one.** A decorative shatter is not a
+control, and giving it a tab stop and a button role would announce an action that does
+nothing for the person who takes it. What that buys is a rule instead of a widget: never
+put anything behind a break that is not reachable without it.
+
+Promoting it also surfaced an API fact that had been hidden by the prototype: **what
+breaks is `children`, not the panel.** The prototype painted its art on the panel itself,
+so moving the art to the caller made the panel stay whole while only the text shattered.
+The panel is the frame that holds the pieces; the surface to be broken goes inside.
+
+## Still open
