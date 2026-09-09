@@ -76,6 +76,23 @@ pnpm install
 | `pnpm build`                        | Library build (ESM + type declarations) |
 | `pnpm validate`                     | All of the above, in order              |
 
+## Experiments
+
+Five ideas are in the Lab. None is published, none is exported, and all of their APIs will
+change. `pnpm dev` runs them.
+
+|                        |                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| **Displacement Field** | A grid pushed aside by the pointer, where displacing one element compresses its neighbours |
+| **Tether**             | An inextensible line with mass, which refuses to be pulled past its own length             |
+| **Weight**             | A light that falls on text and makes the letters heavier, without moving a single word     |
+| **Lumen**              | One light over many tiles, at a constant two DOM writes per frame                          |
+| **Fracture**           | A panel that breaks along geometry computed from where you struck it                       |
+
+Each carries its own notes: the [sparks](./docs/sparks), the
+[concepts](./docs/concepts), and what the [lab](./docs/lab) actually showed —
+including what failed.
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).
