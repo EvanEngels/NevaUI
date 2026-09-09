@@ -11,6 +11,12 @@ export { Lumen } from './lumen/Lumen';
 export type { LumenProps } from './lumen/Lumen';
 import './lumen/lumen.css';
 
+export { Weight } from './weight/Weight';
+export type { WeightProps } from './weight/Weight';
+export { DEFAULT_WEIGHT as WEIGHT_DEFAULTS } from './weight/light';
+export type { WeightSettings } from './weight/light';
+import './weight/weight.css';
+
 export { DisplacementField } from './displacement-field/DisplacementField';
 export type { DisplacementFieldProps } from './displacement-field/DisplacementField';
 export { DEFAULT_SETTINGS as DISPLACEMENT_DEFAULTS } from './displacement-field/field';

@@ -1,0 +1,54 @@
+/*
+ * Weight — a light that falls on text.
+ *
+ * The component measures the paragraph once at its resting weight, then pins the words to
+ * where the browser put them. Everything here exists to make that possible without the
+ * text looking pinned.
+ */
+
+.neva-weight {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  /*
+   * The weight is animated through `font-weight` rather than `font-variation-settings`,
+   * so a variable font interpolates smoothly and a static family steps through the
+   * weights it actually ships instead of failing silently.
+   */
+  font-synthesis-weight: none;
+}
+
+.neva-weight__word {
+  display: inline-block;
+  /* Words carry their own trailing space, so the passage copies back unchanged. */
+  white-space: pre;
+  will-change: font-weight;
+}
+
+/*
+ * Once the paragraph has been laid out, the words are pinned where the browser put them.
+ * `left` holds the centre of the word and the translate puts it back, so extra weight
+ * grows symmetrically instead of pushing to the right.
+ */
+.neva-weight--pinned {
+  position: relative;
+}
+
+.neva-weight--pinned .neva-weight__word {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.neva-weight--boxes .neva-weight__word {
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.3);
+}
+
+/*
+ * Equivalent access, not identical interaction: the words stay pinned — that is layout,
+ * and it keeps the paragraph identical to everyone else's — and no weight ever changes.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .neva-weight__word {
+    will-change: auto;
+  }
+}

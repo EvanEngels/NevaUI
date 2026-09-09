@@ -21,10 +21,18 @@ export interface WeightSettings {
   focus: number;
 }
 
+/**
+ * `peakWeight` is 620 rather than the 800 the effect can reach, and the reason is
+ * visible rather than theoretical: a word grows around its own centre, so half of the
+ * width it gains goes into the gap on each side. At 800 the heavy words touch their
+ * neighbours and the paragraph reads as broken. 620 keeps the gap.
+ *
+ * The lever is yours to push — the component will do 900 — but that is what happens.
+ */
 export const DEFAULT_WEIGHT: WeightSettings = {
   radius: 190,
   restWeight: 250,
-  peakWeight: 800,
+  peakWeight: 620,
   focus: 2.4,
 };
 

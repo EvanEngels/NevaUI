@@ -44,11 +44,41 @@ Weights are eased toward their target and rounded to whole numbers. That is not 
 shortcut: it is what gives the animation a definite arrival, so the loop can end instead
 of chasing an ever-smaller fraction forever.
 
+## Promoted to ⚡ Experimental
+
+On 2026-09-09, once the risk this document kept naming had been tested rather than
+worried about.
+
+**Selection survives.** Absolutely positioned words are exactly the kind of thing that
+quietly breaks text selection, and it does not: selecting the paragraph returns the
+original string character for character, and a drag across eleven words in the middle
+returns those eleven words. DOM order matches visual order, and each word carries its own
+trailing space, so the copy is the passage.
+
+**The cost is per word, and it is layout.** Changing `font-weight` changes a word's
+metrics, so the browser lays that word out again and repaints the type — measured at
+roughly 7.5 microseconds per word: 0.3 ms for 27 words, 2.4 ms for 324. That makes Weight
+the most expensive element-for-element component in the library, and for the reason the
+project keeps rediscovering: a transform is composited, and anything touching text metrics
+is not. A paragraph is comfortable; an article is not, and the component says so.
+
+**And a visible artefact, traded down rather than solved.** A word grows around its own
+centre, so half the width it gains goes into the gap on each side. At the original peak of
+800 the heavy words touch their neighbours and the paragraph reads as broken. Growing to
+the right instead would shove the next word; reserving the heaviest width up front is the
+badly-tracked version this document already rejected. So the default peak came down to
+620, which keeps the gap, and the limitation is written down rather than hidden — it is
+the least bad of three, not a solved problem.
+
+**A failure mode found while promoting it.** Fonts arrive after the first layout. A
+paragraph measured in the fallback face and then pinned would keep the fallback's
+positions for good, under type that no longer has those metrics — every word a few pixels
+off, permanently, with nothing on screen to explain it. It re-measures on
+`document.fonts.ready` now. Nobody would have found that by reading the code.
+
 ## Still open
 
 - Weight is driven through `font-weight`, so a variable font interpolates smoothly and a
   static family steps through the weights it actually ships. On a font with no weight
   range, the effect silently does nothing. Untested across families.
 - Only tried at display sizes. Body text may make the movement of ink illegible.
-- Pinned words are still one text node each, but the paragraph is now absolutely
-  positioned. Selection and copy behaviour has not been checked, and it matters.
