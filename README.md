@@ -59,6 +59,48 @@ Spark → Concept → Lab → Experimental → Stable
 Experiments that do not work out are archived with what was explored, what was learned and
 why it stopped. A documented dead end is a result.
 
+## Components
+
+### ⚡ Experimental
+
+Usable and honest about what they cost. No API stability guarantee.
+
+```bash
+pnpm add nevaui
+```
+
+```tsx
+import { DisplacementField, Fracture, Lumen, Weight } from 'nevaui';
+import 'nevaui/styles.css';
+```
+
+|                                                                   |                                                                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **[Displacement Field](./docs/components/displacement-field.md)** | A grid the pointer pushes aside, where displacing one cell compresses its neighbours. 640 cells cost 8% of a frame. |
+| **[Lumen](./docs/components/lumen.md)**                           | A surface lit by one moving light, at two DOM writes per frame however many faces it has.                           |
+| **[Weight](./docs/components/weight.md)**                         | A light that falls on text and makes the letters heavier, without moving a single word.                             |
+| **[Fracture](./docs/components/fracture.md)**                     | A panel that breaks along geometry computed from where you struck it, cutting through the real content.             |
+
+### 🧪 In the Lab
+
+Prototypes. Not exported, not published, APIs will change.
+
+|                                |                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| **[Pour](./docs/lab/pour.md)** | Sand, water or lava falling onto the page and piling on the layout itself — every element is terrain the material buries. |
+
+### 📦 Archived
+
+Experiments that taught something and stopped. A documented dead end is a result.
+
+|                                        |                                                                      |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| **[Tether](./docs/archive/tether.md)** | An inextensible line with mass. It worked. It never found a purpose. |
+
+Each carries its own notes — the [sparks](./docs/sparks), the [concepts](./docs/concepts),
+and what the [lab](./docs/lab) actually showed, including what failed and how frames are
+[measured](./docs/lab/measuring-frames.md). `pnpm dev` runs the playground for all of it.
+
 ## Development
 
 Requires Node 22.22.2 or newer (`.nvmrc` pins the local version) and pnpm.
@@ -75,23 +117,6 @@ pnpm install
 | `pnpm test` / `pnpm test:watch`     | Vitest + React Testing Library          |
 | `pnpm build`                        | Library build (ESM + type declarations) |
 | `pnpm validate`                     | All of the above, in order              |
-
-## Experiments
-
-Five ideas are in the Lab. None is published, none is exported, and all of their APIs will
-change. `pnpm dev` runs them.
-
-|                        |                                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------------ |
-| **Displacement Field** | A grid pushed aside by the pointer, where displacing one element compresses its neighbours |
-| **Tether**             | An inextensible line with mass, which refuses to be pulled past its own length             |
-| **Weight**             | A light that falls on text and makes the letters heavier, without moving a single word     |
-| **Lumen**              | One light over many tiles, at a constant two DOM writes per frame                          |
-| **Fracture**           | A panel that breaks along geometry computed from where you struck it                       |
-
-Each carries its own notes: the [sparks](./docs/sparks), the
-[concepts](./docs/concepts), and what the [lab](./docs/lab) actually showed —
-including what failed.
 
 ## Contributing
 
