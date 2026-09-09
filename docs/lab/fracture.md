@@ -46,12 +46,28 @@ One critically damped spring pulls every piece back to where it belongs, and the
 elements are removed from the DOM once they arrive. There is no second animation to keep
 in agreement with the first, and an intact panel costs nothing.
 
+## Measured
+
+480-frame window during repeated breaks, display period 6.1 ms:
+
+| shards | script median | p95     | max     | long frames |
+| ------ | ------------- | ------- | ------- | ----------- |
+| 52     | 0.00 ms       | 0.10 ms | 0.20 ms | 1           |
+| 144    | 0.10 ms       | 0.10 ms | 0.20 ms | 0           |
+| 360    | 0.10 ms       | 0.20 ms | 1.30 ms | 2           |
+
+Effectively free, and flat across a sevenfold increase in shards. The geometry, measured
+separately without a DOM, takes 0.074 ms for 360 shards — and it runs once per impact, not
+once per frame.
+
+The shard-count ceiling this document said was unmeasured is now measured, and there isn't
+one within the range the component offers.
+
 ## Still open
 
 - The pieces are empty gradient faces. Whether real content survives being cut into shards
   — text especially — is the whole question for anything beyond decoration, and it is
   untested.
-- Shard count is `rays × rings` with no measured ceiling.
 - Reduced motion currently only drops `will-change`. The break still throws pieces around,
   which is not good enough and needs a real answer.
 - Striking is a pointer event. No keyboard equivalent exists.

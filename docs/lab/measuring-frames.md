@@ -81,5 +81,36 @@ something lags.
 
 ## Results
 
-The first numbers the project has. See [Lumen's notes](./lumen.md#what-it-costs-measured)
-for what they mean and what they cost to believe.
+Three experiments measured, and one answer runs through all of them.
+
+| experiment                                    | at           | long frames |
+| --------------------------------------------- | ------------ | ----------- |
+| [Lumen](./lumen.md), `depth="flat"`           | 420 faces    | 0 (0%)      |
+| [Lumen](./lumen.md), `depth="faces"`          | 40 faces     | 164 (34%)   |
+| [Displacement Field](./displacement-field.md) | 640 elements | 5 (1%)      |
+| [Fracture](./fracture.md)                     | 360 shards   | 2 (0%)      |
+
+### What you animate matters more than how many
+
+Displacement Field moves 640 elements every frame and uses 8% of one. Lumen's per-face
+mode gives way at 40. The difference is not the element count and not the maths — it is
+what changes.
+
+Displacement Field and Fracture animate `transform`, which the compositor can move without
+redrawing anything. Lumen's face mode animated a gradient's position and a blurred
+shadow's offset, which forces a repaint of every face, every frame.
+
+Measured without a DOM at all, the displacement solver costs 0.028 ms at 640 elements
+against 0.50 ms measured in the browser: **about 94% of the frame's script time is the DOM
+writes**, and the physics that looked like the risk is a rounding error. The same held for
+Fracture's geometry.
+
+That is the whole lesson of these three, and it was not available from argument. Every
+one of these experiments had a paragraph confidently discussing element counts before
+anyone measured, and every one of those paragraphs was about the wrong thing.
+
+### How much to trust them
+
+One machine, one display, one window size, and a pointer driven by a script on the same
+main thread rather than by a hand. Trust the comparisons between rows, which share that
+driver. Treat the absolute figures as an order of magnitude.
