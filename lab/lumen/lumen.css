@@ -1,0 +1,77 @@
+.lumen {
+  --light-x: 50%;
+  --light-y: 0px;
+  --light-away: 1;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--lumen-columns), 1fr);
+  gap: 10px;
+  padding: 28px;
+  border-radius: 14px;
+  background: #08080a;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.lumen__tile {
+  /*
+   * The vector from this tile to the light. Everything below is derived from it, so a
+   * tile needs no per-frame JavaScript — only the two properties on the container.
+   */
+  --to-light-x: calc(var(--light-x) - var(--x));
+  --to-light-y: calc(var(--light-y) - var(--y));
+
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background-color: #131317;
+
+  /* The highlight slides across the face, away from the light's direction. */
+  background-image: radial-gradient(
+    120% 120% at calc(50% - var(--to-light-x) * 0.14) calc(50% - var(--to-light-y) * 0.14),
+    rgba(255, 250, 235, 0.5),
+    rgba(255, 250, 235, 0.06) 42%,
+    transparent 70%
+  );
+
+  /* The shadow is cast directly opposite the light, and lengthens with distance. */
+  box-shadow:
+    calc(var(--to-light-x) * -0.05) calc(var(--to-light-y) * -0.05) 16px rgba(0, 0, 0, 0.65),
+    inset calc(var(--to-light-x) * 0.012) calc(var(--to-light-y) * 0.012) 1px
+      rgba(255, 255, 255, 0.14);
+
+  opacity: calc(1 - var(--light-away) * 0.45);
+  transition: opacity 400ms ease;
+}
+
+/* The light itself, so the surface has a source and not just an effect. */
+.lumen__glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 300px;
+  margin: -150px 0 0 -150px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 244, 214, 0.16), transparent 62%);
+  transform: translate3d(var(--light-x), var(--light-y), 0);
+  opacity: calc(1 - var(--light-away));
+  transition: opacity 400ms ease;
+}
+
+/*
+ * Reduced motion: the light stops following the pointer and sits where it started. The
+ * surface keeps its depth, it just does not chase anyone.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .lumen {
+    --light-x: 50%;
+    --light-y: 0px;
+  }
+
+  .lumen__glow {
+    display: none;
+  }
+}
