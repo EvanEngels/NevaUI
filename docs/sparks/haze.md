@@ -26,7 +26,7 @@ returns, which is a much smaller problem.
 ## Open questions
 
 - Does the smoke drift on its own, or only respond? Drifting is prettier and never stops
-  costing.
+  costing. **Answered in the Lab: it drifts, and it never stops costing.**
 - How does it close back — evenly, or from the edges inward?
 - On a button, what is underneath: the label, or something else? A control you cannot read
   is not a control.
