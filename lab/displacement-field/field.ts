@@ -10,8 +10,14 @@
 export interface FieldSettings {
   /** Reach of the pointer, in pixels. */
   radius: number;
-  /** Strength of the pointer force. */
-  intensity: number;
+  /**
+   * How far the most-displaced element travels, in pixels.
+   *
+   * This is a distance, not a force. The force needed to produce it depends on how many
+   * neighbours resist and how densely they sit inside `radius`, so it is measured on the
+   * actual layout when the field is built — see `calibrate`.
+   */
+  displacement: number;
   /** Damping. Higher values kill motion faster. */
   resistance: number;
   /** Mass of a single element. */
@@ -31,14 +37,10 @@ export interface FieldSettings {
  * steps from the pointer still carries ~76% of the peak displacement, the one four steps
  * away ~21%, and the field comes home in ~0.95 s. Lowering the ratio reaches further and
  * settles visibly slower; no setting does both.
- *
- * `intensity` is the one value that does NOT transfer between layouts: it was calibrated
- * for a grid spaced ~56px, and the same number produced a third of the displacement on a
- * chain spaced 50px. A density-independent formulation is an open question.
  */
 export const DEFAULT_SETTINGS: FieldSettings = {
   radius: 180,
-  intensity: 74000,
+  displacement: 28,
   resistance: 19.7,
   mass: 1,
   linkStiffness: 600,
@@ -89,6 +91,8 @@ export interface Field {
   each(visit: (index: number, dx: number, dy: number) => void): void;
   /** True when nothing is moving and nothing is displaced: the loop can stop. */
   isAtRest(): boolean;
+  /** Re-measure the force scale after `settings` was changed in place. */
+  recalibrate(): void;
   settings: FieldSettings;
 }
 
@@ -118,8 +122,12 @@ export function createField(
   let pointer: Point | null = null;
   let accumulator = 0;
 
+  // Measured once, on this layout: the force that makes the most-displaced element
+  // travel `settings.displacement` pixels.
+  let forceScale = calibrate(nodes, settings);
+
   const integrate = (): void => {
-    const { radius, intensity, resistance, mass, linkStiffness, anchorStiffness } = settings;
+    const { radius, resistance, mass, linkStiffness, anchorStiffness } = settings;
 
     for (const node of nodes) {
       let fx = 0;
@@ -134,8 +142,7 @@ export function createField(
         const distance = Math.hypot(awayX, awayY);
 
         if (distance > 0 && distance < radius) {
-          const falloff = (1 - distance / radius) ** 2;
-          const push = (intensity * falloff) / distance;
+          const push = (forceScale * pointerFalloff(distance, radius)) / distance;
           fx += awayX * push;
           fy += awayY * push;
         }
@@ -167,6 +174,10 @@ export function createField(
 
   return {
     settings,
+
+    recalibrate() {
+      forceScale = calibrate(nodes, settings);
+    },
 
     step(elapsedSeconds) {
       accumulator += Math.max(0, elapsedSeconds);
@@ -213,6 +224,93 @@ export function createField(
       );
     },
   };
+}
+
+/** Compact support: elements beyond the radius feel nothing directly. */
+function pointerFalloff(distance: number, radius: number): number {
+  return distance < radius ? (1 - distance / radius) ** 2 : 0;
+}
+
+/**
+ * Finds the force that produces `settings.displacement` pixels of travel on THIS layout.
+ *
+ * The Lab found that a fixed force is not portable: a 2D grid resists roughly eight times
+ * more than a 1D chain, because an element is held by four neighbours instead of two and
+ * the elements on opposite sides of the pointer pull against each other. Denser grids
+ * resist more still. So the force is not a constant to be guessed — it is derived from
+ * the layout it will act on.
+ *
+ * Everything in the model is linear in the force, so one relaxation at unit force gives
+ * the whole answer: scale by the ratio to the requested displacement.
+ *
+ * The reference pointer sits at the centre of the field, where an element is surrounded
+ * on all sides. Elements near an edge have fewer neighbours to fight and will travel
+ * somewhat further than requested. That is a real limitation, not an oversight.
+ */
+function calibrate(nodes: readonly Node[], settings: FieldSettings): number {
+  const first = nodes[0];
+  if (first === undefined) return 0;
+
+  let minX = first.restX;
+  let maxX = first.restX;
+  let minY = first.restY;
+  let maxY = first.restY;
+  for (const node of nodes) {
+    minX = Math.min(minX, node.restX);
+    maxX = Math.max(maxX, node.restX);
+    minY = Math.min(minY, node.restY);
+    maxY = Math.max(maxY, node.restY);
+  }
+  const reference = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+
+  // Steady state of the spring system, solved by relaxation rather than by simulating
+  // it: no timestep, no stability limit, and it converges in a few dozen passes.
+  const solution = new Map<Node, { x: number; y: number }>();
+  for (const node of nodes) solution.set(node, { x: 0, y: 0 });
+
+  const RELAXATION_PASSES = 60;
+  for (let pass = 0; pass < RELAXATION_PASSES; pass += 1) {
+    for (const node of nodes) {
+      const displacement = solution.get(node);
+      if (displacement === undefined) continue;
+
+      const awayX = node.restX - reference.x;
+      const awayY = node.restY - reference.y;
+      const distance = Math.hypot(awayX, awayY);
+
+      let forceX = 0;
+      let forceY = 0;
+      if (distance > 0) {
+        const push = pointerFalloff(distance, settings.radius) / distance;
+        forceX = awayX * push;
+        forceY = awayY * push;
+      }
+
+      let neighbourX = 0;
+      let neighbourY = 0;
+      for (const neighbour of node.neighbours) {
+        const neighbourDisplacement = solution.get(neighbour);
+        if (neighbourDisplacement === undefined) continue;
+        neighbourX += neighbourDisplacement.x;
+        neighbourY += neighbourDisplacement.y;
+      }
+
+      const stiffness = settings.anchorStiffness + node.neighbours.length * settings.linkStiffness;
+      if (stiffness <= 0) continue;
+
+      displacement.x = (forceX + settings.linkStiffness * neighbourX) / stiffness;
+      displacement.y = (forceY + settings.linkStiffness * neighbourY) / stiffness;
+    }
+  }
+
+  let peak = 0;
+  for (const displacement of solution.values()) {
+    peak = Math.max(peak, Math.hypot(displacement.x, displacement.y));
+  }
+
+  // A field with no reachable element cannot be calibrated; zero force is the honest
+  // answer rather than a division by zero.
+  return peak > 0 ? settings.displacement / peak : 0;
 }
 
 function linkOrthogonalNeighbours(nodes: readonly Node[], columns: number): void {

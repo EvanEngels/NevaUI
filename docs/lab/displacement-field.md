@@ -60,10 +60,16 @@ Re-measured on the real grid, the default is `74000`.
 The propagation percentages, on the other hand, transferred almost unchanged — the
 stiffness _ratio_ is geometry-independent in a way the absolute `intensity` is not.
 
-**Consequence for the API:** `intensity` is currently a raw force scale that depends on
-element spacing. Two identical props would produce different effects on two differently
-spaced grids. A density-independent formulation is an open question and probably blocks
-⚡ Experimental.
+**Consequence for the API — since resolved.** `intensity` was a raw force scale, so the
+same prop produced different effects on differently spaced grids. It has been replaced by
+`displacement`, a distance in pixels, and the force needed to produce it is now _measured
+on the actual layout_ when the field is built: one relaxation pass to steady state at unit
+force, then a scale, because everything in the model is linear in the force.
+
+A test holds the line — the same `displacement` prop must produce the same travel on grids
+spaced 30, 56 and 90 pixels apart, within 15%. The remaining honesty: the reference pointer
+sits at the field's centre, so elements near an edge, having fewer neighbours to fight,
+travel somewhat further than requested.
 
 ### 4. The frame measurement is not yet trustworthy
 
@@ -97,5 +103,6 @@ properly needs real pointer input and a profiler, not a page-driven interval.
 The Concept survives. The coupling earns its cost, the model is stable, and the field
 returns to rest without a separate animation.
 
-It is **not** ready for ⚡ Experimental: `intensity` is layout-dependent, the performance
-envelope is unmeasured, and it has only ever been tried on a uniform grid of dots.
+It is **not** ready for ⚡ Experimental: the performance envelope is unmeasured, and it has
+only ever been tried on a uniform grid of dots. The layout dependence that blocked it has
+been fixed — see finding 3.
