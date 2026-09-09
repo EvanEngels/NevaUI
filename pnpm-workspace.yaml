@@ -1,0 +1,12 @@
+# Refuse to install a dependency version that was published moments ago.
+#
+# Nearly every npm supply-chain attack of the last year has the same shape: a
+# maintainer account is taken over, a malicious patch version is published, and it is
+# pulled into thousands of builds within hours — long before anyone notices. Waiting
+# before adopting a new version does not make the package safer, it makes *us* not the
+# first to find out.
+#
+# Two days rather than the seven this deserves, because seven is what today's lockfile
+# fails: twenty-seven of its entries were published inside the last week. Raise it as the
+# tree ages. Even two days removes the window the attacks actually rely on.
+minimumReleaseAge: 2880

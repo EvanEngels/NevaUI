@@ -20,6 +20,15 @@ pnpm install
 pnpm validate
 ```
 
+Development needs the Node version in `.nvmrc` — currently 22 — because the test
+environment does. The `engines` field in `package.json` is deliberately lower: it is
+published metadata and constrains people _installing_ the library, who need none of our
+tooling.
+
+Dependencies are not installed until they have been on the registry for a couple of days
+(`minimumReleaseAge` in `pnpm-workspace.yaml`). If an install fails saying a version is
+too new, that is the policy working: wait, or raise the case for an exception.
+
 ## Workflow
 
 1. Open an issue describing the idea, the interaction, or the bug.
