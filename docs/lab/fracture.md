@@ -63,11 +63,62 @@ once per frame.
 The shard-count ceiling this document said was unmeasured is now measured, and there isn't
 one within the range the component offers.
 
+## It breaks real content
+
+The open question — whether anything but a gradient survives being cut into shards — is
+answered, and the answer is better than expected.
+
+Each shard now holds a **copy of the children**, clipped to its own polygon. A heading and
+a paragraph break along the fracture lines: letters are cut in half, the halves travel
+apart, and the type stays sharp on both sides because a shard is transformed rather than
+re-rendered. The break cuts through the thing itself rather than through a picture of it.
+
+### The accessibility problem this creates, and its answer
+
+A hundred shards means a hundred copies of the text. A screen reader offered the same
+paragraph a hundred times is worse off than one offered nothing.
+
+So the shards are `aria-hidden`, and the intact face stays in the tree at `opacity: 0`
+rather than `visibility: hidden` — visibility would have removed it and left the content
+readable only as hidden copies, which is to say not at all. Verified in the browser: 22
+copies of the heading in the DOM, **one** exposed.
+
+### `rays × rings` is an upper bound, not a count
+
+Cells of the polar mesh that fall outside the panel are clipped away, and roughly a third
+survive. Asking for 52 gives 21 shards; asking for 360 gives 125. The playground said
+"52 shards" and was wrong every time; it says "up to" now.
+
+### What the content costs
+
+| asked | actual shards | DOM nodes | break handler | write pass per frame |
+| ----- | ------------- | --------- | ------------- | -------------------- |
+| 52    | 21            | 110       | 0.5 ms        | 0.03 ms              |
+| 144   | 53            | 270       | 1.4 ms        | 0.10 ms              |
+| 360   | 125           | 630       | 1.6 ms        | 0.15 ms              |
+
+The per-frame cost stays trivial. What grows is the DOM: **nodes ≈ shards × the size of
+your content**, built in one burst when the panel is struck. A heading and a paragraph
+give 630 nodes at 125 shards. A card with an image and six children would give several
+thousand, and the 1.6 ms break would not stay 1.6 ms.
+
+That is the real limit of this design, and it is a limit on _content complexity_ rather
+than on shard count.
+
+### Reduced motion
+
+The break survives, the flight does not: pieces part by a few pixels and come straight
+back, so the crack still reads and nothing is thrown across the panel. Cancelling the
+interaction outright would have removed the content of the interaction, not just its
+motion.
+
+### One rough edge found on the way
+
+A break that starts and is then backgrounded stays broken. The hold counts simulated time,
+frames stop arriving, so the reassembly waits for the viewer to come back. That is
+arguably correct — they see the break they triggered — but it is not a decision anyone
+made.
+
 ## Still open
 
-- The pieces are empty gradient faces. Whether real content survives being cut into shards
-  — text especially — is the whole question for anything beyond decoration, and it is
-  untested.
-- Reduced motion currently only drops `will-change`. The break still throws pieces around,
-  which is not good enough and needs a real answer.
 - Striking is a pointer event. No keyboard equivalent exists.

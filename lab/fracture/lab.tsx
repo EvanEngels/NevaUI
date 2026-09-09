@@ -28,10 +28,21 @@ export function FractureLab() {
           onChange={setIrregularity}
         />
         <Slider label="force" value={force} min={100} max={2600} step={50} onChange={setForce} />
-        <FrameReadout recorder={recorder} subject={`${rays * rings} shards`} />
+        {/* rays x rings is the mesh, not the result: cells that fall outside the panel
+            are clipped away, and roughly a third of them survive. */}
+        <FrameReadout recorder={recorder} subject={`up to ${rays * rings} shards`} />
       </div>
 
-      <Fracture settings={settings} force={force} onFrame={recorder.record} />
+      <Fracture settings={settings} force={force} onFrame={recorder.record}>
+        <div className="fracture-demo">
+          <h3>Break the sentence</h3>
+          <p>
+            Real text, cut along the fracture lines rather than painted onto them. If a letter can
+            survive being sliced in half and thrown across the panel, the shards are made of the
+            thing itself.
+          </p>
+        </div>
+      </Fracture>
     </>
   );
 }

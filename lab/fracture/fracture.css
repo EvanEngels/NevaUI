@@ -14,7 +14,7 @@
   isolation: isolate;
 }
 
-.fracture__art,
+.fracture__face,
 .fracture__shard {
   position: absolute;
   inset: 0;
@@ -22,14 +22,20 @@
   background-size: 100% 100%;
 }
 
-.fracture--broken .fracture__art {
-  /* The intact face is hidden the moment the shards take over, so nothing shows through
-     the gaps that open between them. */
-  visibility: hidden;
+/*
+ * While broken, the intact face must not be seen through the gaps between shards — and
+ * must still be there. `opacity: 0` hides it from the eye and keeps it in the
+ * accessibility tree, where `visibility: hidden` would have removed it and left the
+ * content readable only as fifty-two aria-hidden copies, which is to say not at all.
+ */
+.fracture--broken > .fracture__face {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .fracture__shard {
   will-change: transform;
+  overflow: hidden;
   /* A hairline of light along each break, so the shards read as edges and not as a blur. */
   box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.22);
 }
