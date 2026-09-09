@@ -43,6 +43,37 @@ tiles is not a component.
 
 Paint remains unmeasured and is documented as a limitation rather than resolved.
 
+## The cost is paint, and it is real
+
+Reported from real use, on a real screen, which is the one place none of this could be
+measured from: **raise the columns and rows far enough and it lags badly.**
+
+That is not a surprise so much as the arrival of the bill. The notes above say paint is
+unmeasured and that the design moves cost rather than removing it. What the report adds is
+that the remaining cost is large enough to matter at sizes a person would plausibly ask
+for — which makes the headline property, two writes per frame, true and much less
+important than it sounded.
+
+Where it goes, precisely. When the light moves, each face redraws twice:
+
+1. **The highlight** — a `radial-gradient` whose position depends on the light, so the
+   face's whole background is repainted.
+2. **The shadow** — a `box-shadow` with a 16px blur whose offset depends on the light. A
+   blurred shadow repaints a region _larger_ than the face, and blur is the expensive part.
+
+Neither is touched by writing two properties instead of n. The write count was never the
+bottleneck; it was just the part that was easy to measure and easy to be proud of.
+
+The panel now carries a delivery monitor and one slider per repaint, so setting either to
+zero freezes that value and removes exactly one of the two. That answers the next question
+— which of the two is expensive — by measurement rather than by argument, and it needs a
+person with the tab in front of them.
+
+**If the shadow turns out to be the cost**, the interesting version of this component
+becomes one where the highlight rides a single composited overlay and moves by transform,
+costing no repaint at all, and the per-face depth becomes an opt-in for surfaces small
+enough to afford it.
+
 ## Still open
 
 - Paint cost is unmeasured. That is the real ceiling and no number is claimed.
