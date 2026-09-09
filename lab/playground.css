@@ -196,3 +196,18 @@ header p {
   line-height: 1.5;
   color: rgba(13, 13, 16, 0.72);
 }
+
+.weight-demo {
+  max-width: 30ch;
+  font-size: clamp(28px, 5vw, 54px);
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  cursor: crosshair;
+}
