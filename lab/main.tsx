@@ -9,7 +9,7 @@ const COLUMNS = 16;
 function Playground() {
   const [coupling, setCoupling] = useState(true);
   const [rows, setRows] = useState(10);
-  const [intensity, setIntensity] = useState(DEFAULT_SETTINGS.intensity);
+  const [displacement, setDisplacement] = useState(DEFAULT_SETTINGS.displacement);
   const [radius, setRadius] = useState(DEFAULT_SETTINGS.radius);
   const [resistance, setResistance] = useState(DEFAULT_SETTINGS.resistance);
   const [ratio, setRatio] = useState(
@@ -18,12 +18,12 @@ function Playground() {
 
   const settings = useMemo(
     () => ({
-      intensity,
+      displacement,
       radius,
       resistance,
       anchorStiffness: DEFAULT_SETTINGS.linkStiffness * ratio,
     }),
-    [intensity, radius, resistance, ratio]
+    [displacement, radius, resistance, ratio]
   );
 
   const count = COLUMNS * rows;
@@ -74,12 +74,12 @@ function Playground() {
           {count}
         </Slider>
         <Slider
-          label="intensity"
-          value={intensity}
+          label="displacement"
+          value={displacement}
           min={0}
-          max={30000}
-          step={100}
-          onChange={setIntensity}
+          max={80}
+          step={1}
+          onChange={setDisplacement}
         />
         <Slider label="radius" value={radius} min={40} max={500} step={10} onChange={setRadius} />
         <Slider

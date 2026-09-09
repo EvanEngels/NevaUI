@@ -95,13 +95,40 @@ describe('displacement field', () => {
     expect(field.isAtRest()).toBe(true);
   });
 
+  it('produces the requested displacement whatever the element spacing', () => {
+    // The Lab found that a fixed force is not portable between layouts. This is that
+    // finding turned into a guard: the same prop must mean the same distance on grids
+    // of different density.
+    const request = 30;
+
+    const peakOf = (spacing: number): number => {
+      const points = Array.from({ length: 121 }, (_, index) => ({
+        x: (index % 11) * spacing,
+        y: Math.floor(index / 11) * spacing,
+      }));
+      const field = createField(points, 11, settings({ displacement: request }));
+
+      field.setPointer({ x: 5 * spacing, y: 5 * spacing });
+      advance(field, 3);
+
+      return field
+        .displacements()
+        .reduce((peak, point) => Math.max(peak, Math.hypot(point.x, point.y)), 0);
+    };
+
+    for (const spacing of [30, 56, 90]) {
+      expect(peakOf(spacing)).toBeGreaterThan(request * 0.85);
+      expect(peakOf(spacing)).toBeLessThan(request * 1.15);
+    }
+  });
+
   it('stays finite under a stiff configuration and long frame gaps', () => {
     // Stiffness far past what the fixed timestep can integrate accurately, driven with
     // frame gaps that would make a deltaTime-based integrator diverge.
     const field = createField(
       grid(6, 6),
       6,
-      settings({ linkStiffness: 100000, anchorStiffness: 100000, intensity: 500000 })
+      settings({ linkStiffness: 100000, anchorStiffness: 100000, displacement: 500 })
     );
 
     field.setPointer({ x: 0, y: 0 });
