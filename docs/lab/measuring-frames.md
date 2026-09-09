@@ -69,7 +69,19 @@ paint, and that half remains unmeasured here — it needs the browser's own prof
 should be recorded as a limitation of any component that relies on the trade, not guessed
 at.
 
+## Measuring a component that owns no loop
+
+Script cost is the wrong instrument for a component whose cost is somewhere else. Lumen
+writes two properties per frame and would report near zero forever while the page visibly
+stutters, because its expense is paint.
+
+`DeliveryMonitor` runs its own frame loop and records nothing but arrival times. It
+measures the page rather than the component, which is what a person means when they say
+something lags.
+
 ## Results
 
-None yet. The harness is built and tested; the numbers need a person to run the protocol
-above, and this document will be filled in when they do rather than before.
+None recorded yet from the protocol. One result has arrived from ordinary use, which is
+worth more than nothing and less than a measurement: **Lumen lags badly at large face
+counts**. That is written up in [its lab notes](./lumen.md#the-cost-is-paint-and-it-is-real)
+and is the first thing the protocol should be pointed at.

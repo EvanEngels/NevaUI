@@ -62,10 +62,19 @@ it:
 
 Read these before using it. Experimental means honest, not finished.
 
-- **Paint cost is not measured.** Script is O(1) in the number of faces; painting stays
-  proportional to the lit area. The trade moves work from the main thread to the
-  compositor — it does not remove it. **No face count is recommended, because none has
-  been validated.** See [measuring frames](../lab/measuring-frames.md).
+- **It stutters on large surfaces, and the two-writes-per-frame property does not save
+  it.** Reported from real use: raise the face count far enough and the page visibly lags.
+  The constant write count is true and beside the point. Each face repaints twice per
+  frame — a gradient whose position moves, and a blurred shadow whose offset moves — and
+  that is O(n), on the paint side, where the write count never reached. **No face count is
+  recommended, because none has been validated**, and until it is, treat Lumen as suited
+  to a surface you can see at once rather than a dense grid. See
+  [the lab notes](../lab/lumen.md#the-cost-is-paint-and-it-is-real).
+
+  Two levers, both custom properties, both removing one per-frame repaint:
+  `--neva-lumen-shadow-length: 0` freezes the shadow, `--neva-lumen-highlight-shift: 0`
+  freezes the highlight. Either keeps the light and costs less.
+
 - **Pointer only.** There is no keyboard or touch equivalent, and there is nothing to
   operate: the light is decoration over content that must already stand on its own.
 - **The API will change.** Experimental carries no stability guarantee.
