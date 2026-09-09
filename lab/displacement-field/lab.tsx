@@ -1,19 +1,19 @@
 import { useMemo, useState } from 'react';
-import { DisplacementField } from './DisplacementField';
-import { DEFAULT_SETTINGS } from './field';
+// Imported through the package entry, exactly as a consumer would.
+import { DisplacementField, DISPLACEMENT_DEFAULTS as DEFAULT_SETTINGS } from '../../src';
 import { Slider, Toggle } from '../playground/Slider';
-import { createFrameRecorder } from '../playground/frames';
-import { FrameReadout } from '../playground/FrameReadout';
+import { DeliveryMonitor } from '../playground/DeliveryMonitor';
 
 const COLUMNS = 16;
+const CARD_COLUMNS = 3;
 
 export function DisplacementFieldLab() {
-  const [recorder] = useState(createFrameRecorder);
   const [coupling, setCoupling] = useState(true);
   const [rows, setRows] = useState(10);
   const [displacement, setDisplacement] = useState(DEFAULT_SETTINGS.displacement);
   const [radius, setRadius] = useState(DEFAULT_SETTINGS.radius);
   const [resistance, setResistance] = useState(DEFAULT_SETTINGS.resistance);
+  const [content, setContent] = useState<'dots' | 'cards'>('dots');
   const [ratio, setRatio] = useState(
     DEFAULT_SETTINGS.anchorStiffness / DEFAULT_SETTINGS.linkStiffness
   );
@@ -69,18 +69,32 @@ export function DisplacementFieldLab() {
           onChange={setRatio}
         />
 
-        <FrameReadout recorder={recorder} subject={`${count} elements`} />
+        <Toggle
+          label={content === 'cards' ? 'content: cards' : 'content: dots'}
+          checked={content === 'cards'}
+          onChange={(checked) => setContent(checked ? 'cards' : 'dots')}
+        />
+        <DeliveryMonitor subject={`${count} elements`} />
       </div>
 
       <DisplacementField
-        columns={COLUMNS}
+        columns={content === 'cards' ? CARD_COLUMNS : COLUMNS}
         coupling={coupling}
         settings={settings}
-        onFrame={recorder.record}
+        className={content === 'cards' ? 'field-cards' : undefined}
       >
-        {cells.map((index) => (
-          <span className="dot" key={index} />
-        ))}
+        {content === 'dots'
+          ? cells.map((index) => <span className="dot" key={index} />)
+          : cells.slice(0, CARD_COLUMNS * 4).map((index) => (
+              <article className="card" key={index}>
+                <h3>Fragment {index + 1}</h3>
+                <p>
+                  Type that has to stay readable while the grid moves around it, and a link the
+                  pointer is supposed to be able to reach.
+                </p>
+                <a href="#displacement-field">a link to try to hit</a>
+              </article>
+            ))}
       </DisplacementField>
     </>
   );

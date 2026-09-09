@@ -1,0 +1,31 @@
+/*
+ * Displacement Field — a grid the pointer pushes aside.
+ *
+ * The component writes one displacement per cell per frame as custom properties, and the
+ * only thing that consumes them is a transform. That is deliberate: a transform is moved
+ * by the compositor without redrawing anything, which is why the field holds hundreds of
+ * elements where an effect that repaints its elements gives way at dozens.
+ */
+
+.neva-field {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--neva-field-columns), 1fr);
+  gap: var(--neva-field-gap, 18px);
+  touch-action: none;
+}
+
+.neva-field__cell {
+  transform: translate3d(var(--dx, 0), var(--dy, 0), 0);
+}
+
+/*
+ * Equivalent access, not identical interaction: nothing moves at all. The component also
+ * starts no loop and listens for nothing in this case, so the cells keep the exact
+ * position the layout gave them and stay as operable as the content inside them.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .neva-field__cell {
+    transform: none;
+  }
+}

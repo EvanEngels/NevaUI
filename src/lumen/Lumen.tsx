@@ -6,8 +6,13 @@ export interface LumenProps {
    * cards, tiles, images — rather than wrapping it in anything first.
    */
   children: ReactNode;
-  /** Extra class on the surface, for layout. Lumen sets no layout of its own. */
-  className?: string;
+  /**
+   * Extra class on the surface, for layout. Lumen sets no layout of its own.
+   *
+   * Explicitly `| undefined` so a caller compiling with `exactOptionalPropertyTypes` can
+   * pass a value that may not exist, which is the normal case for a conditional class.
+   */
+  className?: string | undefined;
   /**
    * Inline style on the surface. Present because the component deliberately imposes no
    * layout, so the caller needs somewhere to put one — a grid, or a custom property that

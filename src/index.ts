@@ -10,3 +10,9 @@
 export { Lumen } from './lumen/Lumen';
 export type { LumenProps } from './lumen/Lumen';
 import './lumen/lumen.css';
+
+export { DisplacementField } from './displacement-field/DisplacementField';
+export type { DisplacementFieldProps } from './displacement-field/DisplacementField';
+export { DEFAULT_SETTINGS as DISPLACEMENT_DEFAULTS } from './displacement-field/field';
+export type { FieldSettings as DisplacementSettings } from './displacement-field/field';
+import './displacement-field/field.css';
