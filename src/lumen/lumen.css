@@ -57,9 +57,23 @@
   transition: opacity 400ms ease;
 }
 
+/*
+ * Flat faces get relief from a fixed light, not a moving one.
+ *
+ * A bevel lit from above costs nothing per frame because it never changes: the moving
+ * pool adds the light on top of it. It is what stops flat mode reading as a gradient
+ * sliding over a sheet of paper, which is what it did with no shading at all.
+ */
 .neva-lumen[data-neva-depth='flat'] > * {
-  /* Static: none of this changes when the light moves. */
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --neva-lumen-relief: 1;
+
+  box-shadow:
+    inset 0 calc(1px * var(--neva-lumen-relief)) 0
+      rgba(255, 255, 255, calc(0.09 * var(--neva-lumen-relief))),
+    inset 0 calc(-1px * var(--neva-lumen-relief)) 0
+      rgba(0, 0, 0, calc(0.45 * var(--neva-lumen-relief))),
+    0 calc(2px * var(--neva-lumen-relief)) calc(6px * var(--neva-lumen-relief))
+      rgba(0, 0, 0, calc(0.35 * var(--neva-lumen-relief)));
 }
 
 /*
